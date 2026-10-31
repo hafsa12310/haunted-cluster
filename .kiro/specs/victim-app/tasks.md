@@ -17,7 +17,7 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
   - _Requirements: 10.1, 11.1, 11.2, 11.3_
 
 - [ ] 2. Implement `libs/common`
-  - [ ] 2.1 Create `env-validation.ts` — `validateRequiredEnv(vars: string[]): void`
+  - [x] 2.1 Create `env-validation.ts` — `validateRequiredEnv(vars: string[]): void`
     - Log a descriptive error and call `process.exit(1)` if any variable is absent from `process.env`.
     - _Requirements: 11.3, 11.4_
 

@@ -10,7 +10,6 @@
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
     "strict": true,
@@ -24,12 +23,12 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "paths": {
-      "@app/common": ["libs/common/src"],
-      "@app/common/*": ["libs/common/src/*"],
-      "@app/observability": ["libs/observability/src"],
-      "@app/observability/*": ["libs/observability/src/*"],
-      "@app/chaos": ["libs/chaos/src"],
-      "@app/chaos/*": ["libs/chaos/src/*"]
+      "@app/common": ["./libs/common/src"],
+      "@app/common/*": ["./libs/common/src/*"],
+      "@app/observability": ["./libs/observability/src"],
+      "@app/observability/*": ["./libs/observability/src/*"],
+      "@app/chaos": ["./libs/chaos/src"],
+      "@app/chaos/*": ["./libs/chaos/src/*"]
     }
   }
 }

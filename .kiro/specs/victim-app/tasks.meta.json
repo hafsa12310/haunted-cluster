@@ -12,6 +12,18 @@
         "chatSessionId": "sess_191b5cf4-e85f-4066-8e4c-7bfbce86d08e",
         "timestamp": 1793463507748
       }
+    ],
+    "2.1 Create `env-validation.ts` — `validateRequiredEnv(vars: string[]): void`": [
+      {
+        "executionId": "113cdc58-cb09-4b61-ac76-b1325e02d184",
+        "chatSessionId": "sess_80ee2e1b-1517-4488-8354-d44ab8195fca",
+        "timestamp": 1793464170827
+      },
+      {
+        "executionId": "113cdc58-cb09-4b61-ac76-b1325e02d184",
+        "chatSessionId": "sess_80ee2e1b-1517-4488-8354-d44ab8195fca",
+        "timestamp": 1793464237491
+      }
     ]
   }
 }
