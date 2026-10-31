@@ -6,7 +6,7 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
 
 ## Tasks
 
-- [ ] 1. Scaffold monorepo structure and shared configuration
+- [x] 1. Scaffold monorepo structure and shared configuration
   - Initialise the NestJS monorepo inside `victim-app/` with `nest new` or by hand-crafting `nest-cli.json`, `tsconfig.json`, and `package.json` at the `victim-app/` root.
   - Declare all three apps (`gateway`, `orders`, `payments`) and all three libs (`observability`, `chaos`, `common`) in `nest-cli.json`.
   - Install runtime dependencies: `@nestjs/core`, `@nestjs/common`, `@nestjs/platform-express`, `@nestjs/axios`, `axios`, `prom-client`, `class-validator`, `class-transformer`, `uuid`, `rxjs`, `reflect-metadata`.
