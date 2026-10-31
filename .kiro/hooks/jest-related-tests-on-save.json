@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Run Jest Related Tests on Save",
+      "trigger": "PostFileSave",
+      "description": "When a TypeScript file inside victim-app/apps or victim-app/libs is saved, run Jest tests related to that file and report any failures.",
+      "matcher": "victim-app/(apps|libs)/.*\\.tsx?$",
+      "action": {
+        "type": "command",
+        "command": "cd /Users/syedahafsaanis/Desktop/kiroween/haunted-cluster/haunted-cluster/victim-app && npx jest --findRelatedTests \"$KIRO_FILE_PATH\" --passWithNoTests 2>&1"
+      }
+    }
+  ]
+}
