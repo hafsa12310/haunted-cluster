@@ -29,7 +29,7 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
     - **Property 7: Excluded routes are never affected by chaos**
     - **Validates: Requirements 7.6**
 
-  - [ ] 2.4 Create `map-downstream-error.ts` — `mapDownstreamError(error: AxiosError, serviceName: string): HttpException`
+  - [x] 2.4 Create `map-downstream-error.ts` — `mapDownstreamError(error: AxiosError, serviceName: string): HttpException`
     - Return 504 for `ECONNABORTED`, `ETIMEDOUT`, `ERR_CANCELED`; return 502 for everything else.
     - _Requirements: 1.4, 1.5, 1.6_
 

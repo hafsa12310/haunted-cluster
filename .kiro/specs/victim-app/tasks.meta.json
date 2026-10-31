@@ -53,6 +53,18 @@
         "chatSessionId": "sess_4beb2e57-f554-49ba-a74e-e8d34579eb37",
         "timestamp": 1793469552390
       }
+    ],
+    "2.4 Create `map-downstream-error.ts` — `mapDownstreamError(error: AxiosError, serviceName: string): HttpException`": [
+      {
+        "executionId": "0c0b19d4-8e32-4f64-bce9-925e395adf19",
+        "chatSessionId": "sess_baae6965-609c-44ba-91b6-a8d0061195eb",
+        "timestamp": 1793470040237
+      },
+      {
+        "executionId": "0c0b19d4-8e32-4f64-bce9-925e395adf19",
+        "chatSessionId": "sess_baae6965-609c-44ba-91b6-a8d0061195eb",
+        "timestamp": 1793470377160
+      }
     ]
   }
 }
