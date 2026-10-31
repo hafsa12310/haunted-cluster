@@ -21,11 +21,11 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
     - Log a descriptive error and call `process.exit(1)` if any variable is absent from `process.env`.
     - _Requirements: 11.3, 11.4_
 
-  - [ ] 2.2 Create `is-excluded-route.ts` — `isExcludedRoute(path: string): boolean`
+  - [x] 2.2 Create `is-excluded-route.ts` — `isExcludedRoute(path: string): boolean`
     - Return `true` for `/metrics`, `/health`, and any path starting with `/chaos/`.
     - _Requirements: 7.6_
 
-  - [ ] 2.3 Write property test for `isExcludedRoute`
+  - [x] 2.3 Write property test for `isExcludedRoute`
     - **Property 7: Excluded routes are never affected by chaos**
     - **Validates: Requirements 7.6**
 

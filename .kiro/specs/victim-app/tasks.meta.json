@@ -1,5 +1,10 @@
 {
-  "pbtResults": {},
+  "pbtResults": {
+    "2.3 Write property test for `isExcludedRoute`": {
+      "status": "passed",
+      "lastRunTimestamp": 1793469544891
+    }
+  },
   "executionHistory": {
     "1. Scaffold monorepo structure and shared configuration": [
       {
@@ -23,6 +28,30 @@
         "executionId": "113cdc58-cb09-4b61-ac76-b1325e02d184",
         "chatSessionId": "sess_80ee2e1b-1517-4488-8354-d44ab8195fca",
         "timestamp": 1793464237491
+      }
+    ],
+    "2.2 Create `is-excluded-route.ts` — `isExcludedRoute(path: string): boolean`": [
+      {
+        "executionId": "ddb2b22a-6866-4ffe-a660-3105ee9dad44",
+        "chatSessionId": "sess_39427d87-7146-40e3-ac94-02de846c6589",
+        "timestamp": 1793469260140
+      },
+      {
+        "executionId": "ddb2b22a-6866-4ffe-a660-3105ee9dad44",
+        "chatSessionId": "sess_39427d87-7146-40e3-ac94-02de846c6589",
+        "timestamp": 1793469431917
+      }
+    ],
+    "2.3 Write property test for `isExcludedRoute`": [
+      {
+        "executionId": "0e49ee1f-0467-4b84-82f7-763419747715",
+        "chatSessionId": "sess_4beb2e57-f554-49ba-a74e-e8d34579eb37",
+        "timestamp": 1793469513201
+      },
+      {
+        "executionId": "0e49ee1f-0467-4b84-82f7-763419747715",
+        "chatSessionId": "sess_4beb2e57-f554-49ba-a74e-e8d34579eb37",
+        "timestamp": 1793469552390
       }
     ]
   }
