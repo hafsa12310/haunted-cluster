@@ -3,6 +3,10 @@
     "2.3 Write property test for `isExcludedRoute`": {
       "status": "passed",
       "lastRunTimestamp": 1793469544891
+    },
+    "2.5 Write property test for `mapDownstreamError`": {
+      "status": "passed",
+      "lastRunTimestamp": 1793470667471
     }
   },
   "executionHistory": {
@@ -64,6 +68,73 @@
         "executionId": "0c0b19d4-8e32-4f64-bce9-925e395adf19",
         "chatSessionId": "sess_baae6965-609c-44ba-91b6-a8d0061195eb",
         "timestamp": 1793470377160
+      }
+    ],
+    "2.5 Write property test for `mapDownstreamError`": [
+      {
+        "executionId": "793938d8-9bac-41a2-8140-e0c1ac42f8e0",
+        "chatSessionId": "sess_44af95c8-32de-48ff-a03d-64accbb2ed4d",
+        "timestamp": 1793470611625
+      },
+      {
+        "executionId": "793938d8-9bac-41a2-8140-e0c1ac42f8e0",
+        "chatSessionId": "sess_44af95c8-32de-48ff-a03d-64accbb2ed4d",
+        "timestamp": 1793470676177
+      }
+    ],
+    "2.6 Create `downstream-http.module.ts` — `DownstreamHttpModule`": [
+      {
+        "executionId": "7a49fadf-9c6c-42d2-96f4-21236af14d7e",
+        "chatSessionId": "sess_9d3211ec-9bca-426a-8e20-0e97fb8104d6",
+        "timestamp": 1793471056489
+      },
+      {
+        "executionId": "7a49fadf-9c6c-42d2-96f4-21236af14d7e",
+        "chatSessionId": "sess_9d3211ec-9bca-426a-8e20-0e97fb8104d6",
+        "timestamp": 1793471105883
+      }
+    ],
+    "2.7 Create `common.module.ts` exporting `DownstreamHttpModule`, `mapDownstreamError`, `isExcludedRoute`, `validateRequiredEnv`, and `GlobalExceptionFilter`.": [
+      {
+        "executionId": "c91aeb42-f70a-47dd-aafe-9d510054c1cc",
+        "chatSessionId": "sess_1d3acbc7-9312-4aea-9e98-7a4c25f16f9d",
+        "timestamp": 1793471155624
+      },
+      {
+        "executionId": "c91aeb42-f70a-47dd-aafe-9d510054c1cc",
+        "chatSessionId": "sess_1d3acbc7-9312-4aea-9e98-7a4c25f16f9d",
+        "timestamp": 1793471602291
+      }
+    ],
+    "2.8 Create `global-exception.filter.ts` in `libs/common/src/` — `GlobalExceptionFilter`": [
+      {
+        "executionId": "46c872a4-0da8-46b9-bce1-91dfbddfdbf2",
+        "chatSessionId": "sess_48017021-33e4-447a-ae4a-94489f681a6a",
+        "timestamp": 1793471623132
+      },
+      {
+        "executionId": "46c872a4-0da8-46b9-bce1-91dfbddfdbf2",
+        "chatSessionId": "sess_48017021-33e4-447a-ae4a-94489f681a6a",
+        "timestamp": 1793471688556
+      }
+    ],
+    "2.9 Write unit tests for `GlobalExceptionFilter`": [
+      {
+        "executionId": "e1b89843-e6ac-4bf8-a49d-78573a17b309",
+        "chatSessionId": "sess_f47c730f-f641-48e7-9541-c562b7d21ccc",
+        "timestamp": 1793471701255
+      },
+      {
+        "executionId": "e1b89843-e6ac-4bf8-a49d-78573a17b309",
+        "chatSessionId": "sess_f47c730f-f641-48e7-9541-c562b7d21ccc",
+        "timestamp": 1793471763107
+      }
+    ],
+    "2. Implement `libs/common`": [
+      {
+        "executionId": "e1b89843-e6ac-4bf8-a49d-78573a17b309",
+        "chatSessionId": "sess_f47c730f-f641-48e7-9541-c562b7d21ccc",
+        "timestamp": 1793471763164
       }
     ]
   }

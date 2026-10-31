@@ -16,7 +16,7 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
   - Create `victim-app/.env.example` with every environment variable listed in requirements 11.2–11.3 and 10.9.
   - _Requirements: 10.1, 11.1, 11.2, 11.3_
 
-- [ ] 2. Implement `libs/common`
+- [x] 2. Implement `libs/common`
   - [x] 2.1 Create `env-validation.ts` — `validateRequiredEnv(vars: string[]): void`
     - Log a descriptive error and call `process.exit(1)` if any variable is absent from `process.env`.
     - _Requirements: 11.3, 11.4_
@@ -33,25 +33,25 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
     - Return 504 for `ECONNABORTED`, `ETIMEDOUT`, `ERR_CANCELED`; return 502 for everything else.
     - _Requirements: 1.4, 1.5, 1.6_
 
-  - [ ] 2.5 Write property test for `mapDownstreamError`
+  - [x] 2.5 Write property test for `mapDownstreamError`
     - **Property 10: mapDownstreamError maps error codes to correct HTTP status**
     - **Validates: Requirements 1.4, 1.5, 1.6**
 
-  - [ ] 2.6 Create `downstream-http.module.ts` — `DownstreamHttpModule`
+  - [x] 2.6 Create `downstream-http.module.ts` — `DownstreamHttpModule`
     - Wrap `HttpModule.registerAsync` reading `DOWNSTREAM_TIMEOUT_MS` from env (default 5000).
     - _Requirements: 1.6, 11.2_
 
-  - [ ] 2.7 Create `common.module.ts` exporting `DownstreamHttpModule`, `mapDownstreamError`, `isExcludedRoute`, `validateRequiredEnv`, and `GlobalExceptionFilter`.
+  - [x] 2.7 Create `common.module.ts` exporting `DownstreamHttpModule`, `mapDownstreamError`, `isExcludedRoute`, `validateRequiredEnv`, and `GlobalExceptionFilter`.
     - _Requirements: 1.4, 1.5, 1.6, 7.6_
 
-  - [ ] 2.8 Create `global-exception.filter.ts` in `libs/common/src/` — `GlobalExceptionFilter`
+  - [x] 2.8 Create `global-exception.filter.ts` in `libs/common/src/` — `GlobalExceptionFilter`
     - Pass `HttpException` instances through unchanged, preserving their status code and response body.
     - For non-`HttpException` errors: log via NestJS `Logger` and return `500 { "message": "internal server error" }`.
     - Register via `APP_FILTER` in `CommonModule` so every app that imports `CommonModule` gets the filter for free.
     - Each app's `AppModule` imports `GlobalExceptionFilter` from `@app/common` — no local filter file needed.
     - _Requirements: 1.4, 1.5, 1.6_
 
-  - [ ] 2.9 Write unit tests for `GlobalExceptionFilter`
+  - [x] 2.9 Write unit tests for `GlobalExceptionFilter`
     - Verify `HttpException` instances pass through with their original status code and body unchanged.
     - Verify unknown (non-`HttpException`) errors return HTTP 500 with `{ "message": "internal server error" }`.
     - _Requirements: 1.4, 1.5, 1.6_
