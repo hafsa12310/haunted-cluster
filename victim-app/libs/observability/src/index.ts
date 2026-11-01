@@ -1,2 +1,7 @@
 // @app/observability — Prometheus metrics, health endpoint
-// Exports will be added as individual modules are implemented (Task 3)
+export { MetricsService, METRICS_SERVICE_NAME } from './metrics.service';
+export { MetricsInterceptor } from './metrics.interceptor';
+export { MetricsController } from './metrics.controller';
+export { HealthController } from './health.controller';
+export { ObservabilityModule } from './observability.module';
+export type { ObservabilityModuleOptions } from './observability.module';
