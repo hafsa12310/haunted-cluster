@@ -7,6 +7,38 @@
     "2.5 Write property test for `mapDownstreamError`": {
       "status": "passed",
       "lastRunTimestamp": 1793470667471
+    },
+    "3.4 Write property test for `MetricsInterceptor` — request counter increment": {
+      "status": "passed",
+      "lastRunTimestamp": 1793517081022
+    },
+    "3.5 Write property test for `MetricsInterceptor` — latency histogram duration": {
+      "status": "passed",
+      "lastRunTimestamp": 1793517350742
+    },
+    "3.6 Write property test for `MetricsInterceptor` — error counter 5xx only": {
+      "status": "passed",
+      "lastRunTimestamp": 1793517438499
+    },
+    "5.2 Write property test for chaos DTOs": {
+      "status": "passed",
+      "lastRunTimestamp": 1793545998245
+    },
+    "5.4 Write property test for `ChaosService` — reset clears all state": {
+      "status": "passed",
+      "lastRunTimestamp": 1793550579964
+    },
+    "5.5 Write property test for `ChaosService` — state serialisation round-trip": {
+      "status": "passed",
+      "lastRunTimestamp": 1793594884909
+    },
+    "5.8 Write property test for `ChaosInterceptor` — error rate statistical accuracy": {
+      "status": "passed",
+      "lastRunTimestamp": 1793595841766
+    },
+    "5.9 Write property test for `ChaosInterceptor` — latency injection adds delay": {
+      "status": "passed",
+      "lastRunTimestamp": 1793595917530
     }
   },
   "executionHistory": {
@@ -135,6 +167,315 @@
         "executionId": "e1b89843-e6ac-4bf8-a49d-78573a17b309",
         "chatSessionId": "sess_f47c730f-f641-48e7-9541-c562b7d21ccc",
         "timestamp": 1793471763164
+      }
+    ],
+    "3.1 Create `metrics.service.ts` — `MetricsService`": [
+      {
+        "executionId": "134e08fe-cffb-482f-ab7c-c4e2d11680eb",
+        "chatSessionId": "sess_bd386476-11db-4b83-a9ee-f8db8823df6e",
+        "timestamp": 1793516048778
+      },
+      {
+        "executionId": "134e08fe-cffb-482f-ab7c-c4e2d11680eb",
+        "chatSessionId": "sess_bd386476-11db-4b83-a9ee-f8db8823df6e",
+        "timestamp": 1793516141976
+      }
+    ],
+    "3.2 Write unit tests for `MetricsService`": [
+      {
+        "executionId": "07bcbd44-36fa-4ace-a9e0-bdbbffa7e2d9",
+        "chatSessionId": "sess_e48e901a-912b-4b4f-a8a7-efc7c3aeaa10",
+        "timestamp": 1793516314937
+      },
+      {
+        "executionId": "07bcbd44-36fa-4ace-a9e0-bdbbffa7e2d9",
+        "chatSessionId": "sess_e48e901a-912b-4b4f-a8a7-efc7c3aeaa10",
+        "timestamp": 1793516392367
+      }
+    ],
+    "3.3 Create `metrics.interceptor.ts` — `MetricsInterceptor`": [
+      {
+        "executionId": "73675853-3929-40f3-951f-6a2ecbaa570d",
+        "chatSessionId": "sess_e5e0dc85-321f-4188-9c92-3cc03153b6f0",
+        "timestamp": 1793516405297
+      },
+      {
+        "executionId": "73675853-3929-40f3-951f-6a2ecbaa570d",
+        "chatSessionId": "sess_e5e0dc85-321f-4188-9c92-3cc03153b6f0",
+        "timestamp": 1793516575068
+      }
+    ],
+    "3.4 Write property test for `MetricsInterceptor` — request counter increment": [
+      {
+        "executionId": "97f12675-36e2-40cd-82d4-5444f877aecb",
+        "chatSessionId": "sess_68170dc0-b2c1-4e54-920b-6de3896408aa",
+        "timestamp": 1793517015117
+      },
+      {
+        "executionId": "97f12675-36e2-40cd-82d4-5444f877aecb",
+        "chatSessionId": "sess_68170dc0-b2c1-4e54-920b-6de3896408aa",
+        "timestamp": 1793517090233
+      }
+    ],
+    "3.5 Write property test for `MetricsInterceptor` — latency histogram duration": [
+      {
+        "executionId": "83531a6c-a86d-4218-bedc-793d3e70e56b",
+        "chatSessionId": "sess_ad2403e2-4b6c-41cd-a608-1e70b6083841",
+        "timestamp": 1793517139681
+      },
+      {
+        "executionId": "83531a6c-a86d-4218-bedc-793d3e70e56b",
+        "chatSessionId": "sess_ad2403e2-4b6c-41cd-a608-1e70b6083841",
+        "timestamp": 1793517360060
+      }
+    ],
+    "3.6 Write property test for `MetricsInterceptor` — error counter 5xx only": [
+      {
+        "executionId": "784bd3d8-5f4e-4dfb-98db-16a81fe8e948",
+        "chatSessionId": "sess_ff931e2a-3952-454a-9c7e-3dfdf50dc79b",
+        "timestamp": 1793517392664
+      },
+      {
+        "executionId": "784bd3d8-5f4e-4dfb-98db-16a81fe8e948",
+        "chatSessionId": "sess_ff931e2a-3952-454a-9c7e-3dfdf50dc79b",
+        "timestamp": 1793517446506
+      }
+    ],
+    "3.7 Write unit tests for `MetricsInterceptor`": [
+      {
+        "executionId": "1d95e47f-d414-4570-9c08-b56932f1c059",
+        "chatSessionId": "sess_81a18a1f-98fd-4204-938d-bbfaa440d7cb",
+        "timestamp": 1793517472014
+      },
+      {
+        "executionId": "1d95e47f-d414-4570-9c08-b56932f1c059",
+        "chatSessionId": "sess_81a18a1f-98fd-4204-938d-bbfaa440d7cb",
+        "timestamp": 1793517538055
+      }
+    ],
+    "3.8 Create `metrics.controller.ts` — `MetricsController`": [
+      {
+        "executionId": "ad780b2a-fb0f-45ea-a699-6e4f004b883e",
+        "chatSessionId": "sess_fb7fff80-d8c9-48f7-b73e-ca3a86c0f602",
+        "timestamp": 1793517569305
+      },
+      {
+        "executionId": "ad780b2a-fb0f-45ea-a699-6e4f004b883e",
+        "chatSessionId": "sess_fb7fff80-d8c9-48f7-b73e-ca3a86c0f602",
+        "timestamp": 1793517695095
+      }
+    ],
+    "3.9 Create `health.controller.ts` in `libs/observability/src/` — `HealthController`": [
+      {
+        "executionId": "72d5e7c2-3acc-4a25-8d20-a264afddd89f",
+        "chatSessionId": "sess_993c9f99-57aa-4c7a-a643-cfc8d6d51fee",
+        "timestamp": 1793517844636
+      },
+      {
+        "executionId": "72d5e7c2-3acc-4a25-8d20-a264afddd89f",
+        "chatSessionId": "sess_993c9f99-57aa-4c7a-a643-cfc8d6d51fee",
+        "timestamp": 1793517897641
+      }
+    ],
+    "3.10 Write unit tests for `HealthController`": [
+      {
+        "executionId": "00908478-96fc-4930-acb9-2d46cd8d62ee",
+        "chatSessionId": "sess_63dbdaf2-ab74-4409-8a4c-d384664ae9c1",
+        "timestamp": 1793517923629
+      },
+      {
+        "executionId": "00908478-96fc-4930-acb9-2d46cd8d62ee",
+        "chatSessionId": "sess_63dbdaf2-ab74-4409-8a4c-d384664ae9c1",
+        "timestamp": 1793517966887
+      }
+    ],
+    "3.11 Create `observability.module.ts` — `ObservabilityModule` as a dynamic module": [
+      {
+        "executionId": "d37268d8-799b-4e3a-b091-bddcacb5efb1",
+        "chatSessionId": "sess_e520e4a0-74e2-442d-ab71-0e8825133539",
+        "timestamp": 1793517994555
+      },
+      {
+        "executionId": "d37268d8-799b-4e3a-b091-bddcacb5efb1",
+        "chatSessionId": "sess_e520e4a0-74e2-442d-ab71-0e8825133539",
+        "timestamp": 1793518359873
+      }
+    ],
+    "3. Implement `libs/observability`": [
+      {
+        "executionId": "d37268d8-799b-4e3a-b091-bddcacb5efb1",
+        "chatSessionId": "sess_e520e4a0-74e2-442d-ab71-0e8825133539",
+        "timestamp": 1793518359912
+      }
+    ],
+    "4. Checkpoint — Ensure all tests pass for libs/common and libs/observability": [
+      {
+        "executionId": "932c68db-30f6-4a39-b47d-2eee3ac41752",
+        "chatSessionId": "sess_f5846cd7-3428-4385-a9bb-0d51fea9483e",
+        "timestamp": 1793519997559
+      }
+    ],
+    "5.1 Create chaos DTOs in `dto/`": [
+      {
+        "executionId": "e98244d0-880d-4cd8-8898-f2130ea57f5a",
+        "chatSessionId": "sess_ef51775d-42eb-43ae-8160-21c9aba2766e",
+        "timestamp": 1793545535949
+      },
+      {
+        "executionId": "e98244d0-880d-4cd8-8898-f2130ea57f5a",
+        "chatSessionId": "sess_ef51775d-42eb-43ae-8160-21c9aba2766e",
+        "timestamp": 1793545567835
+      }
+    ],
+    "5.2 Write property test for chaos DTOs": [
+      {
+        "executionId": "c10bf459-d237-4ea3-9a7e-f7ab250abea5",
+        "chatSessionId": "sess_e40a93dd-180d-4ccd-be6c-4ea191a63c63",
+        "timestamp": 1793545961732
+      },
+      {
+        "executionId": "c10bf459-d237-4ea3-9a7e-f7ab250abea5",
+        "chatSessionId": "sess_e40a93dd-180d-4ccd-be6c-4ea191a63c63",
+        "timestamp": 1793546006275
+      }
+    ],
+    "5.3 Create `chaos.service.ts` — `ChaosService`": [
+      {
+        "executionId": "3a01685c-7d47-46a2-83e3-3fb201d2c510",
+        "chatSessionId": "sess_bb34f209-e104-44e7-9d59-d95ce63c8327",
+        "timestamp": 1793548344281
+      },
+      {
+        "executionId": "3a01685c-7d47-46a2-83e3-3fb201d2c510",
+        "chatSessionId": "sess_bb34f209-e104-44e7-9d59-d95ce63c8327",
+        "timestamp": 1793548433166
+      }
+    ],
+    "5.4 Write property test for `ChaosService` — reset clears all state": [
+      {
+        "executionId": "079d88d7-77a5-4d31-b610-52f7e3362537",
+        "chatSessionId": "sess_a4fd8015-5a70-4081-9112-eb1a58450053",
+        "timestamp": 1793550530232
+      },
+      {
+        "executionId": "079d88d7-77a5-4d31-b610-52f7e3362537",
+        "chatSessionId": "sess_a4fd8015-5a70-4081-9112-eb1a58450053",
+        "timestamp": 1793550591379
+      }
+    ],
+    "5.5 Write property test for `ChaosService` — state serialisation round-trip": [
+      {
+        "executionId": "d9bf5b82-4806-4e40-9416-21d425e33651",
+        "chatSessionId": "sess_59d0f92f-3bb0-466d-aeba-167a5adb20f7",
+        "timestamp": 1793594816286
+      },
+      {
+        "executionId": "d9bf5b82-4806-4e40-9416-21d425e33651",
+        "chatSessionId": "sess_59d0f92f-3bb0-466d-aeba-167a5adb20f7",
+        "timestamp": 1793594897861
+      }
+    ],
+    "5.6 Write unit tests for `ChaosService`": [
+      {
+        "executionId": "85090690-21a0-4882-8e7b-6bae5070dcdb",
+        "chatSessionId": "sess_92802a71-2486-40b3-8b76-be717ad4eb68",
+        "timestamp": 1793595010033
+      },
+      {
+        "executionId": "85090690-21a0-4882-8e7b-6bae5070dcdb",
+        "chatSessionId": "sess_92802a71-2486-40b3-8b76-be717ad4eb68",
+        "timestamp": 1793595115572
+      }
+    ],
+    "5.7 Create `chaos.interceptor.ts` — `ChaosInterceptor`": [
+      {
+        "executionId": "e8d9d442-8a98-45c1-91c5-4517eba0b40a",
+        "chatSessionId": "sess_6cc8a99b-2f8b-4db1-99b0-016f2866497e",
+        "timestamp": 1793595667796
+      },
+      {
+        "executionId": "e8d9d442-8a98-45c1-91c5-4517eba0b40a",
+        "chatSessionId": "sess_6cc8a99b-2f8b-4db1-99b0-016f2866497e",
+        "timestamp": 1793595713618
+      }
+    ],
+    "5.8 Write property test for `ChaosInterceptor` — error rate statistical accuracy": [
+      {
+        "executionId": "bebc80dc-2809-4691-b5ef-4618ccfea034",
+        "chatSessionId": "sess_22fc5177-360e-4550-bdc0-761b7662ca30",
+        "timestamp": 1793595745082
+      },
+      {
+        "executionId": "bebc80dc-2809-4691-b5ef-4618ccfea034",
+        "chatSessionId": "sess_22fc5177-360e-4550-bdc0-761b7662ca30",
+        "timestamp": 1793595851153
+      }
+    ],
+    "5.9 Write property test for `ChaosInterceptor` — latency injection adds delay": [
+      {
+        "executionId": "4cb8c50b-858c-479c-909b-f824737a4cf7",
+        "chatSessionId": "sess_ee9b31c0-ce56-4e6d-84d6-38003a09bbb1",
+        "timestamp": 1793595868592
+      },
+      {
+        "executionId": "4cb8c50b-858c-479c-909b-f824737a4cf7",
+        "chatSessionId": "sess_ee9b31c0-ce56-4e6d-84d6-38003a09bbb1",
+        "timestamp": 1793595927075
+      }
+    ],
+    "5.10 Write unit tests for `ChaosInterceptor`": [
+      {
+        "executionId": "fb0ac6dd-4dd7-4868-9dc5-f3543195eeba",
+        "chatSessionId": "sess_cea18359-64cd-4eb6-aa4a-75485cc6eafb",
+        "timestamp": 1793595934326
+      },
+      {
+        "executionId": "fb0ac6dd-4dd7-4868-9dc5-f3543195eeba",
+        "chatSessionId": "sess_cea18359-64cd-4eb6-aa4a-75485cc6eafb",
+        "timestamp": 1793595996679
+      }
+    ],
+    "5.11 Create `chaos.controller.ts` — `ChaosController` (prefix `/chaos`)": [
+      {
+        "executionId": "654c989f-90bf-4763-8b48-10d0af98f3ec",
+        "chatSessionId": "sess_e23a16a9-3f99-4b58-bc0c-70c22f76685f",
+        "timestamp": 1793596026636
+      },
+      {
+        "executionId": "654c989f-90bf-4763-8b48-10d0af98f3ec",
+        "chatSessionId": "sess_e23a16a9-3f99-4b58-bc0c-70c22f76685f",
+        "timestamp": 1793596075236
+      }
+    ],
+    "5.12 Create `chaos.module.ts` exporting `ChaosService`, `ChaosInterceptor`, `ChaosController`.": [
+      {
+        "executionId": "8512b3c9-556b-4c09-a9e9-41a86f63e9fc",
+        "chatSessionId": "sess_f79e7913-23e3-42bc-b672-c8508ae32eb8",
+        "timestamp": 1793596090315
+      },
+      {
+        "executionId": "8512b3c9-556b-4c09-a9e9-41a86f63e9fc",
+        "chatSessionId": "sess_f79e7913-23e3-42bc-b672-c8508ae32eb8",
+        "timestamp": 1793596124322
+      }
+    ],
+    "5. Implement `libs/chaos`": [
+      {
+        "executionId": "8512b3c9-556b-4c09-a9e9-41a86f63e9fc",
+        "chatSessionId": "sess_f79e7913-23e3-42bc-b672-c8508ae32eb8",
+        "timestamp": 1793596124360
+      }
+    ],
+    "6. Checkpoint — Ensure all tests pass for libs/chaos": [
+      {
+        "executionId": "36c6601d-c744-46c4-ac01-0194a71e0424",
+        "chatSessionId": "sess_5aa253b5-ed3b-435a-a7af-1fcde7f54c0d",
+        "timestamp": 1793596471094
+      },
+      {
+        "executionId": "36c6601d-c744-46c4-ac01-0194a71e0424",
+        "chatSessionId": "sess_5aa253b5-ed3b-435a-a7af-1fcde7f54c0d",
+        "timestamp": 1793596521492
       }
     ]
   }

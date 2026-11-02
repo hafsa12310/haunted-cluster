@@ -56,8 +56,8 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
     - Verify unknown (non-`HttpException`) errors return HTTP 500 with `{ "message": "internal server error" }`.
     - _Requirements: 1.4, 1.5, 1.6_
 
-- [ ] 3. Implement `libs/observability`
-  - [ ] 3.1 Create `metrics.service.ts` — `MetricsService`
+- [x] 3. Implement `libs/observability`
+  - [x] 3.1 Create `metrics.service.ts` — `MetricsService`
     - Instantiate a dedicated prom-client `Registry` (not the global default).
     - Register `http_requests_total` (Counter, labels: `method`, `route`, `status_code`, `service`).
     - Register `http_request_duration_seconds` (Histogram, labels: `method`, `route`, `service`, buckets as per requirement 2.6).
@@ -68,11 +68,11 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
     - Implement `getMetrics(): Promise<string>` and `recordRequest(method, route, statusCode, durationSeconds): void`.
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.6, 2.7, 2.8_
 
-  - [ ] 3.2 Write unit tests for `MetricsService`
+  - [x] 3.2 Write unit tests for `MetricsService`
     - Test counter and histogram increment logic, gauge update, and `recordRequest` for each metric.
     - _Requirements: 2.2, 2.3, 2.4, 2.7, 2.8_
 
-  - [ ] 3.3 Create `metrics.interceptor.ts` — `MetricsInterceptor`
+  - [x] 3.3 Create `metrics.interceptor.ts` — `MetricsInterceptor`
     - On `intercept`: call `isExcludedRoute`; if excluded, return `next.handle()` immediately with no timer.
     - Record `startTime = performance.now()`.
     - Obtain the raw `ServerResponse` and register `res.once('close', ...)`.
@@ -80,58 +80,58 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
     - Return `next.handle()` without modification.
     - _Requirements: 2.2, 2.3, 2.4, 2.5_
 
-  - [ ] 3.4 Write property test for `MetricsInterceptor` — request counter increment
+  - [x] 3.4 Write property test for `MetricsInterceptor` — request counter increment
     - **Property 1: Request counter increments on every non-excluded request**
     - **Validates: Requirements 2.2, 2.5**
 
-  - [ ] 3.5 Write property test for `MetricsInterceptor` — latency histogram duration
+  - [x] 3.5 Write property test for `MetricsInterceptor` — latency histogram duration
     - **Property 2: Latency histogram records observed duration (fake timers)**
     - **Validates: Requirements 2.3, 3.2**
 
-  - [ ] 3.6 Write property test for `MetricsInterceptor` — error counter 5xx only
+  - [x] 3.6 Write property test for `MetricsInterceptor` — error counter 5xx only
     - **Property 3: Error counter increments on 5xx only**
     - **Validates: Requirements 2.4**
 
-  - [ ] 3.7 Write unit tests for `MetricsInterceptor`
+  - [x] 3.7 Write unit tests for `MetricsInterceptor`
     - Verify `recordRequest` called with correct args after `res.close` fires.
     - Verify `route` label from `req.route?.path`, falling back to `"unmatched"`.
     - Verify status 499 when `res.writableFinished === false`.
     - Verify excluded routes are skipped entirely.
     - _Requirements: 2.2, 2.3, 2.4, 2.5_
 
-  - [ ] 3.8 Create `metrics.controller.ts` — `MetricsController`
+  - [x] 3.8 Create `metrics.controller.ts` — `MetricsController`
     - `GET /metrics` → set `Content-Type: text/plain; version=0.0.4`, return `metricsService.getMetrics()`.
     - _Requirements: 2.1_
 
-  - [ ] 3.9 Create `health.controller.ts` in `libs/observability/src/` — `HealthController`
+  - [x] 3.9 Create `health.controller.ts` in `libs/observability/src/` — `HealthController`
     - `GET /health` → return `{ status: 'ok', service: <serviceName> }` using the service name configured via `ObservabilityModule.forRoot({ serviceName })`.
     - No downstream calls are made.
     - _Requirements: 8.1, 8.2_
 
-  - [ ] 3.10 Write unit tests for `HealthController`
+  - [x] 3.10 Write unit tests for `HealthController`
     - Verify the response contains `status: 'ok'` and the correct `service` name as configured.
     - _Requirements: 8.1, 8.2_
 
-  - [ ] 3.11 Create `observability.module.ts` — `ObservabilityModule` as a dynamic module
+  - [x] 3.11 Create `observability.module.ts` — `ObservabilityModule` as a dynamic module
     - Expose `ObservabilityModule.forRoot({ serviceName: string })` — the `serviceName` is passed in and provided to both `MetricsService` and `HealthController`.
     - Export `MetricsService`, `MetricsInterceptor`, `MetricsController`, and `HealthController`.
     - _Requirements: 2.1, 2.8, 8.1_
 
-- [ ] 4. Checkpoint — Ensure all tests pass for libs/common and libs/observability
+- [x] 4. Checkpoint — Ensure all tests pass for libs/common and libs/observability
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Implement `libs/chaos`
-  - [ ] 5.1 Create chaos DTOs in `dto/`
+- [x] 5. Implement `libs/chaos`
+  - [x] 5.1 Create chaos DTOs in `dto/`
     - `set-latency.dto.ts`: `SetLatencyDto` with `@IsInt() @Min(0) @Max(30000) ms: number`.
     - `set-error-rate.dto.ts`: `SetErrorRateDto` with `@IsNumber() @Min(0) @Max(100) percentage: number`.
     - `set-memory-leak.dto.ts`: `SetMemoryLeakDto` with `@IsBoolean() enabled: boolean`.
     - _Requirements: 3.3, 3.4, 3.5, 4.3, 4.4, 4.5, 5.5_
 
-  - [ ] 5.2 Write property test for chaos DTOs
+  - [x] 5.2 Write property test for chaos DTOs
     - **Property 8: DTO validation rejects out-of-range chaos inputs**
     - **Validates: Requirements 3.3, 3.4, 4.3, 4.4**
 
-  - [ ] 5.3 Create `chaos.service.ts` — `ChaosService`
+  - [x] 5.3 Create `chaos.service.ts` — `ChaosService`
     - Initialise `ChaosState` with all fields zeroed and all timers null.
     - Implement `setLatency(ms)`: update `state.latencyMs`, cancel and restart TTL timer.
     - Implement `setErrorRate(percentage)`: same TTL pattern.
@@ -142,39 +142,39 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
     - Implement `crash()`: schedule `process.exit(1)` in 100 ms.
     - _Requirements: 3.1, 3.2, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 7.1, 7.2, 7.4, 7.5_
 
-  - [ ] 5.4 Write property test for `ChaosService` — reset clears all state
+  - [x] 5.4 Write property test for `ChaosService` — reset clears all state
     - **Property 6: Chaos reset clears all state and frees leak memory**
     - **Validates: Requirements 7.1**
 
-  - [ ] 5.5 Write property test for `ChaosService` — state serialisation round-trip
+  - [x] 5.5 Write property test for `ChaosService` — state serialisation round-trip
     - **Property 9: ChaosState serialisation round-trip**
     - **Validates: Requirements 7.5**
 
-  - [ ] 5.6 Write unit tests for `ChaosService`
+  - [x] 5.6 Write unit tests for `ChaosService`
     - Test state transitions, TTL timer scheduling with `jest.useFakeTimers()`, reset clearing all fields, TTL expiry of memory leak freeing array, `getState()` snapshot accuracy.
     - _Requirements: 3.1, 3.2, 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 7.1, 7.4, 7.5_
 
-  - [ ] 5.7 Create `chaos.interceptor.ts` — `ChaosInterceptor`
+  - [x] 5.7 Create `chaos.interceptor.ts` — `ChaosInterceptor`
     - On `intercept`: call `isExcludedRoute`; if excluded, return `next.handle()` immediately.
     - If `latencyMs > 0`, `await sleep(latencyMs)`.
     - If `errorRatePercent > 0`, draw `Math.random() * 100`; if below threshold throw `HttpException(500, { message: 'chaos: injected error' })`.
     - Return `next.handle()`.
     - _Requirements: 3.1, 3.2, 4.1, 4.2, 7.6_
 
-  - [ ] 5.8 Write property test for `ChaosInterceptor` — error rate statistical accuracy
+  - [x] 5.8 Write property test for `ChaosInterceptor` — error rate statistical accuracy
     - **Property 4: Chaos error-rate injection statistical accuracy**
     - **Validates: Requirements 4.1, 4.2**
 
-  - [ ] 5.9 Write property test for `ChaosInterceptor` — latency injection adds delay
+  - [x] 5.9 Write property test for `ChaosInterceptor` — latency injection adds delay
     - **Property 5: Chaos latency injection adds delay to every non-excluded request (fake timers)**
     - **Validates: Requirements 3.1, 3.2**
 
-  - [ ] 5.10 Write unit tests for `ChaosInterceptor`
+  - [x] 5.10 Write unit tests for `ChaosInterceptor`
     - Excluded routes pass through with no delay or error.
     - Non-excluded routes: latency awaited (fake timers), error-rate injection statistical check.
     - _Requirements: 3.1, 3.2, 4.1, 4.2, 7.6_
 
-  - [ ] 5.11 Create `chaos.controller.ts` — `ChaosController` (prefix `/chaos`)
+  - [x] 5.11 Create `chaos.controller.ts` — `ChaosController` (prefix `/chaos`)
     - `POST /latency` → `chaosService.setLatency(dto.ms)`, return `{ message: 'latency set', ms }`.
     - `POST /error-rate` → `chaosService.setErrorRate(dto.percentage)`, return `{ message: 'error rate set', percentage }`.
     - `POST /memory-leak` → enable or disable accordingly.
@@ -183,10 +183,10 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
     - `GET /state` → return `chaosService.getState()`.
     - _Requirements: 3.1, 3.3, 3.4, 3.5, 4.1, 4.3, 4.4, 4.5, 5.1, 5.4, 5.5, 6.1, 6.2, 7.1, 7.2, 7.3, 7.5_
 
-  - [ ] 5.12 Create `chaos.module.ts` exporting `ChaosService`, `ChaosInterceptor`, `ChaosController`.
+  - [x] 5.12 Create `chaos.module.ts` exporting `ChaosService`, `ChaosInterceptor`, `ChaosController`.
     - _Requirements: 3.1, 4.1, 5.1, 6.1, 7.1_
 
-- [ ] 6. Checkpoint — Ensure all tests pass for libs/chaos
+- [x] 6. Checkpoint — Ensure all tests pass for libs/chaos
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 7. Implement Gateway app
