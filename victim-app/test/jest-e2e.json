@@ -1,0 +1,16 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": "..",
+  "roots": ["<rootDir>/test/"],
+  "testRegex": ".*\\.e2e-spec\\.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "testEnvironment": "node",
+  "testTimeout": 60000,
+  "moduleNameMapper": {
+    "^@app/common(|/.*)$": "<rootDir>/libs/common/src/$1",
+    "^@app/observability(|/.*)$": "<rootDir>/libs/observability/src/$1",
+    "^@app/chaos(|/.*)$": "<rootDir>/libs/chaos/src/$1"
+  }
+}

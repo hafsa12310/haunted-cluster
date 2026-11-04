@@ -284,25 +284,25 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
   - Run `npm test` to verify the full test suite.
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 15. Write integration tests
-  - [ ] 15.1 End-to-end smoke test
+- [x] 15. Write integration tests
+  - [x] 15.1 End-to-end smoke test
     - Start all three services, send `POST /order` to Gateway, assert HTTP 200.
     - Assert `GET /metrics` on each service returns non-zero `http_requests_total`.
     - _Requirements: 9.1, 2.2_
 
-  - [ ] 15.2 Chaos propagation test
+  - [x] 15.2 Chaos propagation test
     - Enable error rate 100% on Orders via `POST /chaos/error-rate`.
     - Send `POST /order` to Gateway, assert HTTP 502.
     - _Requirements: 4.1, 1.4_
 
-  - [ ] 15.3 Chaos TTL expiry test
+  - [x] 15.3 Chaos TTL expiry test
     - Set `CHAOS_TTL_SECONDS=1`, enable latency on Payments via `POST /chaos/latency`.
     - Wait 2 s, assert `GET /chaos/state` on Payments returns `latencyMs === 0`.
     - _Requirements: 7.4_
 
   - _Requirements: 3.1, 4.1, 7.4, 9.1_
 
-- [ ] 16. Final checkpoint — Ensure all services are healthy and tests pass
+- [x] 16. Final checkpoint — Ensure all services are healthy and tests pass
   - Run `docker compose up` (from the repo root) and verify all five services are healthy within 30 seconds.
   - Run the integration tests from Task 15 against the running stack.
   - Run `npm test` for the full unit and property test suite.
