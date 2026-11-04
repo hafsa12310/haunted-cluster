@@ -1,0 +1,84 @@
+services:
+  gateway:
+    build:
+      context: ./victim-app
+      dockerfile: apps/gateway/Dockerfile
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      PORT: 3000
+      ORDERS_URL: http://orders:3001
+      DOWNSTREAM_TIMEOUT_MS: 5000
+      CHAOS_TTL_SECONDS: 120
+      LEAK_MB_PER_SECOND: 5
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  orders:
+    build:
+      context: ./victim-app
+      dockerfile: apps/orders/Dockerfile
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      PORT: 3001
+      PAYMENTS_URL: http://payments:3002
+      DOWNSTREAM_TIMEOUT_MS: 5000
+      CHAOS_TTL_SECONDS: 120
+      LEAK_MB_PER_SECOND: 5
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  payments:
+    build:
+      context: ./victim-app
+      dockerfile: apps/payments/Dockerfile
+    ports:
+      - "3002:3002"
+    restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      PORT: 3002
+      CHAOS_TTL_SECONDS: 120
+      LEAK_MB_PER_SECOND: 5
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      gateway:
+        condition: service_healthy
+      orders:
+        condition: service_healthy
+      payments:
+        condition: service_healthy
+
+  load-generator:
+    build:
+      context: ./victim-app
+      dockerfile: load-generator/Dockerfile
+    restart: unless-stopped
+    environment:
+      GATEWAY_URL: http://gateway:3000
+      LOAD_INTERVAL_MS: 500
+    depends_on:
+      gateway:
+        condition: service_healthy

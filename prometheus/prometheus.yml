@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 2s          # 2-second scrape for responsive demo visuals
+
+scrape_configs:
+  - job_name: gateway
+    static_configs:
+      - targets: ['gateway:3000']
+
+  - job_name: orders
+    static_configs:
+      - targets: ['orders:3001']
+
+  - job_name: payments
+    static_configs:
+      - targets: ['payments:3002']

@@ -263,12 +263,12 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
   - Stage 2: copy `dist/apps/<name>`, `node_modules`, `package.json`; set `NODE_ENV=production`; `CMD ["node", "dist/main"]`.
   - _Requirements: 10.1, 10.2_
 
-- [ ] 13. Write Prometheus configuration and docker-compose.yml
-  - [ ] 13.1 Write `prometheus/prometheus.yml` at the repository root (one level above `victim-app/`)
+- [x] 13. Write Prometheus configuration and docker-compose.yml
+  - [x] 13.1 Write `prometheus/prometheus.yml` at the repository root (one level above `victim-app/`)
     - Set `scrape_interval: 2s`; add three scrape jobs for gateway (3000), orders (3001), payments (3002).
     - _Requirements: 10.2_
 
-  - [ ] 13.2 Write `docker-compose.yml` at the repository root (one level above `victim-app/`)
+  - [x] 13.2 Write `docker-compose.yml` at the repository root (one level above `victim-app/`)
     - Build contexts for gateway, orders, payments, and load-generator are all set to `./victim-app` (relative to the repo root).
     - The Prometheus config volume mount references `./prometheus/prometheus.yml` at the repo root.
     - Define services: gateway, orders, payments, prometheus, load-generator.
@@ -280,7 +280,7 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
     - Expose ports 3000, 3001, 3002, 9090.
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8_
 
-- [ ] 14. Checkpoint — Ensure all tests pass and Dockerfiles are valid
+- [x] 14. Checkpoint — Ensure all tests pass and Dockerfiles are valid
   - Run `npm test` to verify the full test suite.
   - Ensure all tests pass, ask the user if questions arise.
 
