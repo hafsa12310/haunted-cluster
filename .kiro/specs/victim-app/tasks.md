@@ -189,7 +189,7 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
 - [x] 6. Checkpoint — Ensure all tests pass for libs/chaos
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 7. Implement Gateway app
+- [x] 7. Implement Gateway app
   - [x] 7.1 Create `apps/gateway/src/core/core.service.ts`
     - Inject `HttpService` from `DownstreamHttpModule`.
     - `processOrder()`: `POST <ORDERS_URL>/order`; on `AxiosError` call `mapDownstreamError(error, 'orders')` and throw the result.
@@ -219,32 +219,32 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
     - Read `PORT` from env (default 3000) and listen.
     - _Requirements: 11.1, 11.3, 11.4_
 
-- [ ] 8. Implement Orders app
-  - [ ] 8.1 Create `apps/orders/src/core/core.service.ts`
+- [x] 8. Implement Orders app
+  - [x] 8.1 Create `apps/orders/src/core/core.service.ts`
     - `processOrder()`: `POST <PAYMENTS_URL>/payment`; on `AxiosError` call `mapDownstreamError(error, 'payments')` and throw.
     - _Requirements: 1.2, 1.4, 1.5, 1.6, 1.8_
 
-  - [ ] 8.2 Write unit tests for Orders `CoreService`
+  - [x] 8.2 Write unit tests for Orders `CoreService`
     - Same mock patterns as Gateway: 502/502/504/happy-path.
     - _Requirements: 1.2, 1.4, 1.5, 1.6_
 
-  - [ ] 8.3 Create `apps/orders/src/core/core.controller.ts`, `core.module.ts`, `app.module.ts`, and `main.ts`
+  - [x] 8.3 Create `apps/orders/src/core/core.controller.ts`, `core.module.ts`, `app.module.ts`, and `main.ts`
     - Follow the same shape as Gateway.
     - `app.module.ts`: import `ObservabilityModule.forRoot({ serviceName: 'orders' })`, `ChaosModule`, `CoreModule`, `CommonModule`; register `MetricsInterceptor` (first) and `ChaosInterceptor` (second) globally; `GlobalExceptionFilter` comes from `CommonModule`.
     - `main.ts`: call `validateRequiredEnv(['PAYMENTS_URL'])`; enable `ValidationPipe` globally with `{ whitelist: true }`; default PORT 3001.
     - _Requirements: 1.2, 2.2, 3.1, 4.1, 11.1, 11.3, 11.4_
 
-- [ ] 9. Implement Payments app
-  - [ ] 9.1 Create `apps/payments/src/core/core.service.ts`
+- [x] 9. Implement Payments app
+  - [x] 9.1 Create `apps/payments/src/core/core.service.ts`
     - `processPayment()`: return `{ status: 'paid', orderId: <uuid> }` — no downstream call.
     - _Requirements: 1.3_
 
-  - [ ] 9.2 Create `apps/payments/src/core/core.controller.ts`, `core.module.ts`, `app.module.ts`, and `main.ts`
+  - [x] 9.2 Create `apps/payments/src/core/core.controller.ts`, `core.module.ts`, `app.module.ts`, and `main.ts`
     - `app.module.ts`: import `ObservabilityModule.forRoot({ serviceName: 'payments' })`, `ChaosModule`, `CoreModule`, `CommonModule`; register `MetricsInterceptor` (first) and `ChaosInterceptor` (second) globally; `GlobalExceptionFilter` comes from `CommonModule`.
     - `main.ts`: no required env validation; enable `ValidationPipe` globally with `{ whitelist: true }`; default PORT 3002.
     - _Requirements: 1.3, 2.2, 3.1, 4.1, 11.1_
 
-- [ ] 10. Checkpoint — Ensure all tests pass for all three apps
+- [x] 10. Checkpoint — Ensure all tests pass for all three apps
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 11. Implement load-generator
