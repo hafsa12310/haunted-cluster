@@ -5,19 +5,35 @@ Date | Kiro feature | What happened | Good/Bad | Why it matters
 
 ## Entries
 - 2026-10-31 | Steering | Wrote product, tech, structure docs. Kiro correctly described my stack when asked. | Good | Saves me repeating conventions in every prompt.
+
 - 2026-10-31 | Specs (requirements) | Reviewed Kiro's first requirements draft and found real problems: chaos would have applied to /metrics and /chaos/reset, the memory leak used Buffers (invisible to heapUsed) and was far too slow to see, and downstream 5xx errors didn't propagate. Rewrote the requirements before any code existed. | Mixed | Kiro's draft looked complete but had demo-breaking bugs; reviewing the spec caught them at zero cost.
+
 - 2026-10-31 | Specs (design) | Three design review rounds. Caught that NestJS middleware runs before interceptors (injected chaos would be invisible to metrics), that reading status in finalize() records 502/504 as 200, and that 'finish' misses aborted requests (switched to 'close' + 499). | Good | These bugs would only have shown up after building everything with vibe coding; spec review found them on paper.
+
 - 2026-10-31 | Specs (tasks) | Refined tasks.md: made all tests required, moved the exception filter and health controller into shared libs, added Jest path-alias config, ValidationPipe in every app, and integration tests. | Good | The task list is the build plan; fixing it up front prevents duplicated code and a failing first checkpoint.
+
 - 2026-10-31 | Agent hooks | Created a hook that runs `jest --findRelatedTests` on the saved file (with --passWithNoTests) whenever a .ts file in apps/ or libs/ is saved. | Good | Instant feedback on every save instead of discovering several failures at once at a checkpoint.
+
 - 2026-10-31 | Scaffolding | Kiro's tsconfig used baseUrl, which is deprecated in TypeScript 6. Removed it and made the path aliases relative (./libs/...). | Bad → fixed | Showed the value of reviewing generated config rather than accepting it blindly.
+
 - 2026-10-31 | Specs (task execution) | Ran Task 2.1 (validateRequiredEnv). Kiro created the env-validation helper that logs the missing variable by name and exits with code 1. The save hook fired and passed with --passWithNoTests since no tests existed yet. | Good | Confirmed the one-task-at-a-time rhythm (run task → review → test → commit) and that the hook works end to end.
+
 - 2026-10-31 | Specs (task execution) | Ran Task 2.4 (mapDownstreamError). Kiro implemented it as a pure function that returns (not throws) an HttpException: 504 for timeout codes, 502 for everything else, with the service name in the message. Reviewed it against the design before committing. | Good | Because the design had already settled the tricky decisions (return vs throw, default case), the implementation matched on the first try with nothing to fix.
+
 - 2026-10-31 | Property-based testing | Task 2.5: Kiro wrote 6 fast-check tests for mapDownstreamError (Property 10), generating timeout codes (→ 504), connection error codes (→ 502), random downstream 4xx/5xx statuses (→ 502), and unknown error shapes (→ 502). All passed on the first run; suite now at 9 tests. | Good | Error mapping decides what the haunting engine sees when a service fails; property tests across random inputs prove no error type slips through as the wrong status or crashes the function.
+
 - 2026-10-31 | Specs (task execution) | Tasks 2.6–2.9: Kiro built DownstreamHttpModule (timeout read from DOWNSTREAM_TIMEOUT_MS, default 5000), GlobalExceptionFilter (HttpExceptions pass through with their own status; unknown errors become 500 and are logged), its unit tests, and CommonModule bundling everything. Ran them as one batch and committed together. | Good | libs/common is now complete; every app gets error mapping, route exclusion, env validation and the exception filter from one shared place instead of three copies.
+
 - 2026-10-31 | Specs (design → tasks) | The exception filter lives in libs/common because the task review caught that Kiro's original plan copied it into all three apps (and registered it before it was created). | Good | A design-level decision made during spec review prevented duplicated code and an ordering bug before implementation started.
+
 - 2026-11-01 | Specs (task execution) | Tasks 3.1–3.11: Kiro built libs/observability: MetricsService with its own Registry and the five metrics named in the design, MetricsInterceptor recording on res 'close' (499 for client-aborted requests, route from req.route.path or "unmatched", excluded routes skipped), the /metrics and /health controllers, and ObservabilityModule.forRoot({ serviceName }). | Good | This library is what the haunting engine will read; the design fixes (close event, interceptor order, exclusions) are now actual code instead of plans.
+
 - 2026-11-01 | Property-based testing | Kiro wrote property tests for the interceptor: request counter increments exactly once per request (Property 1), latency histogram records at least the injected delay using Jest fake timers (Property 2), and the error counter increments only for 5xx statuses (Property 3), plus unit tests for the 499 and "unmatched" cases. | Good | Fake timers let the latency property test run across delays up to 30 seconds in milliseconds of real time, so the suite stays fast while still covering slow-service scenarios.
+
 - 2026-11-02 | Specs (checkpoint) | Task 4 checkpoint: ran the full suite for libs/common and libs/observability; all tests passed before starting the chaos library. | Good | Checkpoints stop bugs in the foundation from leaking into the layers built on top of it.
+
 - 2026-11-02 | Specs (task execution) | Tasks 5.1–5.12: Kiro built libs/chaos: validated DTOs, ChaosService (latency, error rate, timer-based heap leak, crash, reset, TTL auto-expiry that also frees leaked memory), ChaosInterceptor (skips excluded routes), ChaosController with all six endpoints, and ChaosModule. | Good | This is the "break it on purpose" layer; auto-expiry means a judge who leaves chaos running can't leave the live demo broken for the next person.
+
 - 2026-11-02 | Property-based testing | Property tests for chaos: DTOs reject any out-of-range input (Property 8), reset always clears every setting and frees the leak (Property 6), getState accurately reflects any combination of settings (Property 9), injected error rate stays statistically accurate over 200 requests (Property 4), and latency is always awaited (Property 5, fake timers). | Good | Chaos behaviour is random by design, so testing across many generated inputs is the only convincing way to show it behaves correctly.
+
 - 2026-11-02 | Specs (checkpoint) | Task 6 checkpoint: full suite green across libs/common, libs/observability and libs/chaos. All three shared libraries are finished before any app code exists. | Good | Building bottom-up means the apps can now be assembled from tested parts instead of debugging everything at once.

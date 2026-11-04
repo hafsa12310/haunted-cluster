@@ -477,6 +477,61 @@
         "chatSessionId": "sess_5aa253b5-ed3b-435a-a7af-1fcde7f54c0d",
         "timestamp": 1793596521492
       }
+    ],
+    "7.1 Create `apps/gateway/src/core/core.service.ts`": [
+      {
+        "executionId": "320e8b6c-d522-4072-8712-9fe2a6607bb6",
+        "chatSessionId": "sess_ebd39183-ac3e-4ae9-a30b-e5d7acbf94a5",
+        "timestamp": 1793610436516
+      },
+      {
+        "executionId": "320e8b6c-d522-4072-8712-9fe2a6607bb6",
+        "chatSessionId": "sess_ebd39183-ac3e-4ae9-a30b-e5d7acbf94a5",
+        "timestamp": 1793612353922
+      }
+    ],
+    "7.2 Write unit tests for Gateway `CoreService`": [
+      {
+        "executionId": "c303beb1-eb72-4811-96ed-e6a14034ea5f",
+        "chatSessionId": "sess_590d3583-d7fd-49a3-9953-71bbcc7e0be9",
+        "timestamp": 1793615106230
+      },
+      {
+        "executionId": "c303beb1-eb72-4811-96ed-e6a14034ea5f",
+        "chatSessionId": "sess_590d3583-d7fd-49a3-9953-71bbcc7e0be9",
+        "timestamp": 1793615223849
+      }
+    ],
+    "7.3 Create `apps/gateway/src/core/core.controller.ts`": [
+      {
+        "executionId": "b128a654-8b4d-4e04-bdc7-f3b1a1f108e9",
+        "chatSessionId": "sess_aed816ce-0af1-46d2-8213-56b40fc6b987",
+        "timestamp": 1793617703100
+      },
+      {
+        "executionId": "b128a654-8b4d-4e04-bdc7-f3b1a1f108e9",
+        "chatSessionId": "sess_aed816ce-0af1-46d2-8213-56b40fc6b987",
+        "timestamp": 1793617735674
+      }
+    ],
+    "7.4 Create `apps/gateway/src/core/core.module.ts`": [
+      {
+        "executionId": "53ef1297-2043-4c94-8908-f23a92182a26",
+        "chatSessionId": "sess_023e3025-d0c9-457b-a63c-81dd4ecc0bec",
+        "timestamp": 1793617753502
+      },
+      {
+        "executionId": "53ef1297-2043-4c94-8908-f23a92182a26",
+        "chatSessionId": "sess_023e3025-d0c9-457b-a63c-81dd4ecc0bec",
+        "timestamp": 1793617785971
+      }
+    ],
+    "7.5 Create `apps/gateway/src/app.module.ts`": [
+      {
+        "executionId": "d2f5dbea-d439-4acb-9de4-75c31a8d790d",
+        "chatSessionId": "sess_b2acc7cf-7f41-4998-b43f-88f68466d61c",
+        "timestamp": 1793617797651
+      }
     ]
   }
 }

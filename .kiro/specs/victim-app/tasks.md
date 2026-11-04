@@ -190,30 +190,30 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 7. Implement Gateway app
-  - [ ] 7.1 Create `apps/gateway/src/core/core.service.ts`
+  - [x] 7.1 Create `apps/gateway/src/core/core.service.ts`
     - Inject `HttpService` from `DownstreamHttpModule`.
     - `processOrder()`: `POST <ORDERS_URL>/order`; on `AxiosError` call `mapDownstreamError(error, 'orders')` and throw the result.
     - _Requirements: 1.1, 1.4, 1.5, 1.6, 1.7_
 
-  - [ ] 7.2 Write unit tests for Gateway `CoreService`
+  - [x] 7.2 Write unit tests for Gateway `CoreService`
     - Mocked `HttpService`: 502 on ECONNREFUSED, 502 on downstream 5xx, 504 on timeout, happy-path response shape.
     - _Requirements: 1.1, 1.4, 1.5, 1.6_
 
-  - [ ] 7.3 Create `apps/gateway/src/core/core.controller.ts`
+  - [x] 7.3 Create `apps/gateway/src/core/core.controller.ts`
     - `POST /order` → delegates to `CoreService.processOrder()`.
     - _Requirements: 1.1_
 
-  - [ ] 7.4 Create `apps/gateway/src/core/core.module.ts`
+  - [x] 7.4 Create `apps/gateway/src/core/core.module.ts`
     - Import `DownstreamHttpModule`; declare and export `CoreService`, `CoreController`.
     - _Requirements: 1.1, 1.7_
 
-  - [ ] 7.5 Create `apps/gateway/src/app.module.ts`
+  - [x] 7.5 Create `apps/gateway/src/app.module.ts`
     - Import `ObservabilityModule.forRoot({ serviceName: 'gateway' })`, `ChaosModule`, `CoreModule`, `CommonModule`.
     - Register both interceptors as global `APP_INTERCEPTOR` providers: `MetricsInterceptor` first, `ChaosInterceptor` second.
     - `GlobalExceptionFilter` is provided via `CommonModule` — no local `APP_FILTER` registration needed.
     - _Requirements: 1.1, 2.2, 3.1, 4.1_
 
-  - [ ] 7.6 Create `apps/gateway/src/main.ts`
+  - [x] 7.6 Create `apps/gateway/src/main.ts`
     - Call `validateRequiredEnv(['ORDERS_URL'])` before `NestFactory.create`.
     - Enable `ValidationPipe` globally with `{ whitelist: true }`.
     - Read `PORT` from env (default 3000) and listen.

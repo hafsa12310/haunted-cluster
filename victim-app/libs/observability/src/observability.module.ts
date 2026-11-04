@@ -37,13 +37,7 @@ export class ObservabilityModule {
         MetricsService,
         MetricsInterceptor,
       ],
-      exports: [
-        METRICS_SERVICE_NAME,
-        MetricsService,
-        MetricsInterceptor,
-        MetricsController,
-        HealthController,
-      ],
+      exports: [METRICS_SERVICE_NAME, MetricsService, MetricsInterceptor],
     };
   }
 }
