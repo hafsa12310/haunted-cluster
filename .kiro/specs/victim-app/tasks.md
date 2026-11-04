@@ -247,17 +247,17 @@ Build the victim-app NestJS monorepo containing three services (Gateway, Orders,
 - [x] 10. Checkpoint — Ensure all tests pass for all three apps
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 11. Implement load-generator
-  - [ ] 11.1 Create `load-generator/src/index.ts`
+- [x] 11. Implement load-generator
+  - [x] 11.1 Create `load-generator/src/index.ts`
     - Read `GATEWAY_URL` (default `http://localhost:3000`) and `LOAD_INTERVAL_MS` (default 500) from env.
     - Loop: send `POST /order` with `AbortController` timeout of 10 000 ms; log status and response time to stdout; on error log and continue; wait `LOAD_INTERVAL_MS` between requests.
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6_
 
-  - [ ] 11.2 Create `load-generator/tsconfig.json` and `load-generator/Dockerfile`
+  - [x] 11.2 Create `load-generator/tsconfig.json` and `load-generator/Dockerfile`
     - Multi-stage Dockerfile: build stage compiles with `tsc`, runtime stage copies `dist/` and `node_modules`.
     - _Requirements: 10.1_
 
-- [ ] 12. Write multi-stage Dockerfiles for Gateway, Orders, Payments
+- [x] 12. Write multi-stage Dockerfiles for Gateway, Orders, Payments
   - Create `apps/gateway/Dockerfile`, `apps/orders/Dockerfile`, `apps/payments/Dockerfile`.
   - Stage 1: `FROM node:20-alpine AS builder` — `npm ci`, then `npx nest build <name>`.
   - Stage 2: copy `dist/apps/<name>`, `node_modules`, `package.json`; set `NODE_ENV=production`; `CMD ["node", "dist/main"]`.
