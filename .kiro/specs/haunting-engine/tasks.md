@@ -6,7 +6,7 @@ Build the `shared/` types-only package and the `haunting-engine` NestJS app. Imp
 
 ## Tasks
 
-- [ ] 1. Scaffold `shared/` and `haunting-engine/`
+- [x] 1. Scaffold `shared/` and `haunting-engine/`
   - Create `shared/package.json` (`@haunted-cluster/shared`, private, `"types": "dist/index.d.ts"`) and `shared/tsconfig.json` (strict, `declaration: true`, `emitDeclarationOnly: true`, `outDir: dist`, `rootDir: src`).
   - Create `haunting-engine/` as a standalone NestJS app: `package.json`, `nest-cli.json`, `tsconfig.json`, `tsconfig.build.json` (`rootDir: ./src`, excludes `**/*.spec.ts` and `test/`).
   - Pin the same versions as victim-app where they overlap (`@nestjs/*` 10.3.10, TypeScript 5.5.3, Jest 29.7.0, fast-check 3.20.0, `@types/node` 20.14.10). Add `@nestjs/websockets` and `@nestjs/platform-socket.io` 10.3.10, `class-validator`, `class-transformer`, `rxjs`, `reflect-metadata`; dev: `@nestjs/testing`, `@nestjs/cli`, `ts-jest`, `@types/jest`, `socket.io-client`, `supertest`, `@types/supertest`.
@@ -16,12 +16,12 @@ Build the `shared/` types-only package and the `haunting-engine` NestJS app. Imp
   - Add `shared/dist/` and `haunting-engine/dist/` to the root `.gitignore` (it already covers `node_modules/`).
   - _Requirements: 1.2, 12.1_
 
-- [ ] 2. Implement `shared/` types
-  - [ ] 2.1 Write `service-health.ts`, `incident.ts`, `chaos.ts`, `events.ts` and `index.ts` exactly as in design.md Data Models
+- [x] 2. Implement `shared/` types
+  - [x] 2.1 Write `service-health.ts`, `incident.ts`, `chaos.ts`, `events.ts` and `index.ts` exactly as in design.md Data Models
     - Only `interface` and `type` declarations: no enums, no `const`, no functions.
     - _Requirements: 1.1, 1.2_
 
-  - [ ] 2.2 Verify the shared build output
+  - [x] 2.2 Verify the shared build output
     - Run `npm run build:shared` from `haunting-engine/`; confirm `shared/dist/` contains only `.d.ts` files.
     - Write a throwaway file in `haunting-engine/src/` that imports every type from `@haunted-cluster/shared`, run `tsc --noEmit`, then delete it.
     - _Requirements: 1.2, 1.3_

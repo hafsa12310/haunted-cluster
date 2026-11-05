@@ -1,0 +1,7 @@
+{
+  "name": "@haunted-cluster/shared",
+  "version": "0.1.0",
+  "description": "Types shared by haunting-engine and haunted-house. Declarations only, no runtime code.",
+  "private": true,
+  "types": "dist/index.d.ts"
+}

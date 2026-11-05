@@ -93,3 +93,5 @@ Date | Kiro feature | What happened | Good/Bad | Why it matters
 - 2026-11-05 | Specs (design) | Reused victim-app lessons up front: import shared types from compiled .d.ts files to avoid the nested-dist bug, show "unknown" (never "healthy") when Prometheus is down, and let crashes skip the 2-poll wait. | Good | Mistakes from last phase are now design rules instead of bugs to find again.
 
 - 2026-11-05 | Specs (format) | Kiro flagged "Missing ## Data Models" because the heading had extra text. The fix was then undone by an editor tab saving an old version. | Bad → fixed | Kiro needs exact headings; close stale tabs before saving.
+
+- 2026-11-05 | Specs (task execution) | Tasks 1–2: scaffolded shared/ and haunting-engine/, then wrote the shared event types. Checked that shared builds to .d.ts only, the engine builds to a flat dist/main.js, and a wrong Socket.IO event name or payload fails to compile. Turned off incremental builds after a leftover cache file showed up. | Good | The type contract and build setup are proven before any engine code exists.
