@@ -59,15 +59,15 @@ Build the `shared/` types-only package and the `haunting-engine` NestJS app. Imp
     - **Property 3: Dread is the worst badness**
     - **Validates: Requirements 3.7**
 
-- [ ] 5. Implement fault attribution
-  - [ ] 5.1 Create `incidents/attribution.ts`: `Attribution`, `attributeFaults(chain, health)`
+- [x] 5. Implement fault attribution
+  - [x] 5.1 Create `incidents/attribution.ts`: `Attribution`, `attributeFaults(chain, health)`
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6_
 
-  - [ ] 5.2 Write property test for `attributeFaults`
+  - [x] 5.2 Write property test for `attributeFaults`
     - **Property 4: Attribution is complete and well-formed**
     - **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.5, 4.6**
 
-  - [ ] 5.3 Write unit tests for `attributeFaults` covering every row of the worked-examples table in design.md, plus the documented concurrent-fault limitation (gateway latency + payments errors → one incident rooted at payments, gateway affected with `latency`)
+  - [x] 5.3 Write unit tests for `attributeFaults` covering every row of the worked-examples table in design.md, plus the documented concurrent-fault limitation (gateway latency + payments errors → one incident rooted at payments, gateway affected with `latency`)
     - _Requirements: 4.1, 4.2, 4.3_
 
 - [ ] 6. Implement the incident tracker
