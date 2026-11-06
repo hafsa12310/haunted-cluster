@@ -26,36 +26,36 @@ Build the `shared/` types-only package and the `haunting-engine` NestJS app. Imp
     - Write a throwaway file in `haunting-engine/src/` that imports every type from `@haunted-cluster/shared`, run `tsc --noEmit`, then delete it.
     - _Requirements: 1.2, 1.3_
 
-- [ ] 3. Implement configuration
-  - [ ] 3.1 Create `config/engine-config.ts`: `EngineConfig`, `ConfigError`, `loadEngineConfig(env)`
+- [x] 3. Implement configuration
+  - [x] 3.1 Create `config/engine-config.ts`: `EngineConfig`, `ConfigError`, `loadEngineConfig(env)`
     - Required: `PROMETHEUS_URL`, `<SERVICE>_URL` per chain entry (upper-case, `-` → `_`).
     - Defaults and validation exactly as design.md Configuration.
     - _Requirements: 13.1, 13.2, 13.3, 7.7_
 
-  - [ ] 3.2 Write unit tests for `loadEngineConfig`
+  - [x] 3.2 Write unit tests for `loadEngineConfig`
     - Defaults; each missing required var; `ok ≥ critical`; non-numeric; bad `RATE_WINDOW`; duplicate chain entries; custom chain URL derivation.
     - _Requirements: 13.1, 13.2, 13.3_
 
-  - [ ] 3.3 Create `config/config.module.ts` — global module providing `ENGINE_CONFIG` and a `CLOCK` token (`{ now: () => Date.now() }`)
+  - [x] 3.3 Create `config/config.module.ts` — global module providing `ENGINE_CONFIG` and a `CLOCK` token (`{ now: () => Date.now() }`)
     - _Requirements: 13.2_
 
-  - [ ] 3.4 Create `haunting-engine/.env.example` listing every variable from Requirement 13 with its default
+  - [x] 3.4 Create `haunting-engine/.env.example` listing every variable from Requirement 13 with its default
     - _Requirements: 13.4_
 
-- [ ] 4. Implement health scoring
-  - [ ] 4.1 Create `health/health-scoring.ts`: `badness`, `scoreService`, `clusterDread`, `unknownHealth`
+- [x] 4. Implement health scoring
+  - [x] 4.1 Create `health/health-scoring.ts`: `badness`, `scoreService`, `clusterDread`, `unknownHealth`
     - Status from `maxBadness`, never from the rounded score.
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 11.3_
 
-  - [ ] 4.2 Write property test for `badness`
+  - [x] 4.2 Write property test for `badness`
     - **Property 1: Badness is bounded and monotonic**
     - **Validates: Requirements 3.1**
 
-  - [ ] 4.3 Write property test for `scoreService`
+  - [x] 4.3 Write property test for `scoreService`
     - **Property 2: Score, status and breached kinds are consistent**
     - **Validates: Requirements 3.2, 3.3, 3.4, 3.5, 3.6, 11.3**
 
-  - [ ] 4.4 Write property test for `clusterDread`
+  - [x] 4.4 Write property test for `clusterDread`
     - **Property 3: Dread is the worst badness**
     - **Validates: Requirements 3.7**
 

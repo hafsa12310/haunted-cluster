@@ -95,3 +95,11 @@ Date | Kiro feature | What happened | Good/Bad | Why it matters
 - 2026-11-05 | Specs (format) | Kiro flagged "Missing ## Data Models" because the heading had extra text. The fix was then undone by an editor tab saving an old version. | Bad → fixed | Kiro needs exact headings; close stale tabs before saving.
 
 - 2026-11-05 | Specs (task execution) | Tasks 1–2: scaffolded shared/ and haunting-engine/, then wrote the shared event types. Checked that shared builds to .d.ts only, the engine builds to a flat dist/main.js, and a wrong Socket.IO event name or payload fails to compile. Turned off incremental builds after a leftover cache file showed up. | Good | The type contract and build setup are proven before any engine code exists.
+
+- 2026-11-05 | Specs (task execution) | Tasks 3.1–3.2: the engine reads all its settings from env vars and gives a clear error naming any missing or bad one. 61 tests cover the defaults and every kind of bad input. | Good | Every config mistake now fails at startup with a clear message instead of causing odd behaviour later.
+
+- 2026-11-06 | Specs (task execution) | Tasks 3.3–3.4: added a config module so any part of the engine can read the settings, plus a .env.example listing all 21 variables. Checked the example file loads and matches the defaults. | Good | The example file can't drift from the code without me noticing.
+
+- 2026-11-06 | Specs (task execution) | Task 4.1: health scoring. Each service gets a score (0–100) and a status (healthy, degraded, critical, down, unknown), and the cluster gets one "dread" value (0–1) for the frontend. Results matched the design's examples (500 ms = degraded, 1000 ms = critical). | Good | This is the number that will drive every room's visuals and sound.
+
+- 2026-11-06 | Property-based testing | Tasks 4.2–4.4: property tests for the scoring (76 tests in total). They found that very large threshold values broke the maths, so I fixed it. I also broke the code on purpose four times to check the tests fail when they should; they did every time. | Mixed | A passing test only means something if it fails when the code is wrong.
