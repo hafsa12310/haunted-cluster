@@ -103,26 +103,26 @@ Build the `shared/` types-only package and the `haunting-engine` NestJS app. Imp
   - Run `npm test` in `haunting-engine/`; run `npx tsc --noEmit`.
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Implement metrics collection
-  - [ ] 8.1 Create `metrics/promql.ts` — `buildQueries(config)`, with a unit test asserting the exact query strings
+- [x] 8. Implement metrics collection
+  - [x] 8.1 Create `metrics/promql.ts` — `buildQueries(config)`, with a unit test asserting the exact query strings
     - _Requirements: 2.2, 2.3_
 
-  - [ ] 8.2 Create `metrics/prometheus.client.ts`: `PrometheusClient.query`, `parseVector`, `MetricsUnavailableError`
+  - [x] 8.2 Create `metrics/prometheus.client.ts`: `PrometheusClient.query`, `parseVector`, `MetricsUnavailableError`
     - `fetch` with `AbortSignal.timeout(prometheusTimeoutMs)`; whole-query failures throw `MetricsUnavailableError` with `cause`.
     - _Requirements: 2.2, 2.6, 2.8, 11.1_
 
-  - [ ] 8.3 Write property test for `parseVector`
+  - [x] 8.3 Write property test for `parseVector`
     - **Property 9: Prometheus parsing never throws on sample values**
     - **Validates: Requirements 2.6**
 
-  - [ ] 8.4 Write unit tests for `PrometheusClient` (mocked `fetch`): non-2xx, `status: "error"` body, timeout, network error → `MetricsUnavailableError`
+  - [x] 8.4 Write unit tests for `PrometheusClient` (mocked `fetch`): non-2xx, `status: "error"` body, timeout, network error → `MetricsUnavailableError`
     - _Requirements: 2.8, 11.1_
 
-  - [ ] 8.5 Create `metrics/metrics-collector.service.ts` and `metrics.module.ts`
+  - [x] 8.5 Create `metrics/metrics-collector.service.ts` and `metrics.module.ts`
     - Combine the five vectors into `Record<ServiceName, ServiceSignals>` exactly as in design.md.
     - _Requirements: 2.2, 2.4, 2.5, 2.6_
 
-  - [ ] 8.6 Write unit tests for `MetricsCollectorService` (mocked client)
+  - [x] 8.6 Write unit tests for `MetricsCollectorService` (mocked client)
     - Missing error series with traffic → 0; zero rate → `errorRatio` null; unit conversions; missing `up` → null; one query rejecting → `collect()` rejects.
     - _Requirements: 2.4, 2.5, 2.6_
 
