@@ -70,36 +70,36 @@ Build the `shared/` types-only package and the `haunting-engine` NestJS app. Imp
   - [x] 5.3 Write unit tests for `attributeFaults` covering every row of the worked-examples table in design.md, plus the documented concurrent-fault limitation (gateway latency + payments errors → one incident rooted at payments, gateway affected with `latency`)
     - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 6. Implement the incident tracker
-  - [ ] 6.1 Create `incidents/incident-tracker.ts`: `TrackerState`, `IncidentEvent`, `PollInput`, `initialTrackerState(chain)`, `fingerprint`, `trackIncidents`
+- [x] 6. Implement the incident tracker
+  - [x] 6.1 Create `incidents/incident-tracker.ts`: `TrackerState`, `IncidentEvent`, `PollInput`, `initialTrackerState(chain)`, `fingerprint`, `trackIncidents`
     - Follow the per-Poll algorithm in design.md exactly, including: blind Polls return state unchanged; `unknown` services freeze streaks; `down` opens immediately; kinds only grow; `updated` only on kind/affected change; history newest first, trimmed to the limit.
     - _Requirements: 5.1–5.7, 6.1–6.3, 8.1_
 
-  - [ ] 6.2 Write property test for hysteresis
+  - [x] 6.2 Write property test for hysteresis
     - **Property 5: Hysteresis on open and close**
     - **Validates: Requirements 5.1, 5.2, 5.5**
 
-  - [ ] 6.3 Write property test for immediate `down`
+  - [x] 6.3 Write property test for immediate `down`
     - **Property 6: `down` opens immediately**
     - **Validates: Requirements 5.3**
 
-  - [ ] 6.4 Write property test for blind Polls
+  - [x] 6.4 Write property test for blind Polls
     - **Property 7: Blind Polls are no-ops**
     - **Validates: Requirements 5.6, 11.1**
 
-  - [ ] 6.5 Write property test for recurrence and history
+  - [x] 6.5 Write property test for recurrence and history
     - **Property 8: Recurrence and bounded history**
     - **Validates: Requirements 6.1, 6.2, 6.3**
 
-  - [ ] 6.6 Write property test for `fingerprint`
+  - [x] 6.6 Write property test for `fingerprint`
     - **Property 10: Fingerprint follows the primary-kind rule**
     - **Validates: Requirements 5.7**
 
-  - [ ] 6.7 Write unit tests for `trackIncidents`
+  - [x] 6.7 Write unit tests for `trackIncidents`
     - `relatedChaos` filtered by root service and evidence window, newest first; `updated` not emitted for peak-only changes; peaks keep max values and min score; resolved incident has `resolvedAt` and `durationMs`.
     - _Requirements: 5.4, 5.5, 8.1_
 
-- [ ] 7. Checkpoint — Ensure all tests pass for the pure core
+- [x] 7. Checkpoint — Ensure all tests pass for the pure core
   - Run `npm test` in `haunting-engine/`; run `npx tsc --noEmit`.
   - Ensure all tests pass, ask the user if questions arise.
 
