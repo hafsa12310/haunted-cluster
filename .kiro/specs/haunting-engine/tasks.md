@@ -126,45 +126,45 @@ Build the `shared/` types-only package and the `haunting-engine` NestJS app. Imp
     - Missing error series with traffic → 0; zero rate → `errorRatio` null; unit conversions; missing `up` → null; one query rejecting → `collect()` rejects.
     - _Requirements: 2.4, 2.5, 2.6_
 
-- [ ] 9. Implement the chaos proxy
-  - [ ] 9.1 Create DTOs in `chaos-proxy/dto/`: `SetLatencyDto`, `SetErrorRateDto`, `SetMemoryLeakDto`
+- [x] 9. Implement the chaos proxy
+  - [x] 9.1 Create DTOs in `chaos-proxy/dto/`: `SetLatencyDto`, `SetErrorRateDto`, `SetMemoryLeakDto`
     - _Requirements: 7.2_
 
-  - [ ] 9.2 Write property test for chaos proxy DTOs
+  - [x] 9.2 Write property test for chaos proxy DTOs
     - **Property 11: Chaos proxy DTOs reject out-of-range input**
     - **Validates: Requirements 7.2**
 
-  - [ ] 9.3 Create `chaos-proxy/chaos-log.service.ts` (newest first, capped at 100) with unit tests
+  - [x] 9.3 Create `chaos-proxy/chaos-log.service.ts` (newest first, capped at 100) with unit tests
     - _Requirements: 8.2_
 
-  - [ ] 9.4 Create `chaos-proxy/chaos-proxy.service.ts`: `forward`, `state`, `resetAll`
+  - [x] 9.4 Create `chaos-proxy/chaos-proxy.service.ts`: `forward`, `state`, `resetAll`
     - Error mapping table from design.md; record a Chaos_Event and call `EventsGateway.emitChaos` on success.
     - _Requirements: 7.1, 7.4, 7.5, 7.6_
 
-  - [ ] 9.5 Write unit tests for `ChaosProxyService` (mocked `fetch`)
+  - [x] 9.5 Write unit tests for `ChaosProxyService` (mocked `fetch`)
     - 2xx and 202 passthrough with event recorded; 5xx → 502; network error → 502; timeout → 504; no event recorded on failure; `resetAll` partial failure.
     - _Requirements: 7.4, 7.5, 7.6_
 
-  - [ ] 9.6 Create `known-service.pipe.ts` and `chaos-proxy.controller.ts` (`/reset-all` declared before `/:service/*`), with unit tests for the pipe's 404
+  - [x] 9.6 Create `known-service.pipe.ts` and `chaos-proxy.controller.ts` (`/reset-all` declared before `/:service/*`), with unit tests for the pipe's 404
     - _Requirements: 7.1, 7.3_
 
-  - [ ] 9.7 Create `chaos-proxy.module.ts`
+  - [x] 9.7 Create `chaos-proxy.module.ts`
     - _Requirements: 7.1_
 
-- [ ] 10. Implement engine state, poller and Socket.IO
-  - [ ] 10.1 Create `engine/engine-state.service.ts`
+- [x] 10. Implement engine state, poller and Socket.IO
+  - [x] 10.1 Create `engine/engine-state.service.ts`
     - _Requirements: 9.4, 10.2, 10.3_
 
-  - [ ] 10.2 Create `engine/events.gateway.ts` typed with `Server<ClientToServerEvents, ServerToClientEvents>`, and a custom `IoAdapter` that reads `corsOrigin` from config
+  - [x] 10.2 Create `engine/events.gateway.ts` typed with `Server<ClientToServerEvents, ServerToClientEvents>`, and a custom `IoAdapter` that reads `corsOrigin` from config
     - _Requirements: 1.4, 9.1, 9.2, 9.3, 9.4, 9.5_
 
-  - [ ] 10.3 Write unit tests for `EventsGateway`: on connect, sends snapshot (when present) and `incident:list` to that client only; `emitIncidentEvent` maps each event type to the right event name
+  - [x] 10.3 Write unit tests for `EventsGateway`: on connect, sends snapshot (when present) and `incident:list` to that client only; `emitIncidentEvent` maps each event type to the right event name
     - _Requirements: 9.3, 9.4_
 
-  - [ ] 10.4 Create `engine/poller.service.ts` with the `setTimeout` chain and per-Poll pipeline from design.md
+  - [x] 10.4 Create `engine/poller.service.ts` with the `setTimeout` chain and per-Poll pipeline from design.md
     - _Requirements: 2.1, 2.7, 9.2, 9.3, 11.1, 11.2_
 
-  - [ ] 10.5 Write unit tests for `PollerService` (fake timers, mocked collector and gateway)
+  - [x] 10.5 Write unit tests for `PollerService` (fake timers, mocked collector and gateway)
     - No overlap while a Poll is pending; delay subtracts elapsed time; `MetricsUnavailableError` → `unknown` snapshot emitted and loop continues; unexpected error logged and loop continues; `onModuleDestroy` stops scheduling.
     - _Requirements: 2.1, 2.7, 11.1, 11.2_
 
