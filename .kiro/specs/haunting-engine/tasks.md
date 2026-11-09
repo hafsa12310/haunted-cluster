@@ -168,27 +168,27 @@ Build the `shared/` types-only package and the `haunting-engine` NestJS app. Imp
     - No overlap while a Poll is pending; delay subtracts elapsed time; `MetricsUnavailableError` → `unknown` snapshot emitted and loop continues; unexpected error logged and loop continues; `onModuleDestroy` stops scheduling.
     - _Requirements: 2.1, 2.7, 11.1, 11.2_
 
-- [ ] 11. Implement REST read endpoints
-  - [ ] 11.1 Create `HealthController`, `SnapshotController`, `IncidentsController`
+- [x] 11. Implement REST read endpoints
+  - [x] 11.1 Create `HealthController`, `SnapshotController`, `IncidentsController`
     - _Requirements: 10.1, 10.2, 10.3_
 
-  - [ ] 11.2 Write unit tests: `/api/snapshot` 503 before first Poll and 200 after; `/api/incidents` ordering
+  - [x] 11.2 Write unit tests: `/api/snapshot` 503 before first Poll and 200 after; `/api/incidents` ordering
     - _Requirements: 10.2, 10.3_
 
-- [ ] 12. Wire the app and boot it for real
-  - [ ] 12.1 Create `engine/engine.module.ts`, `incidents/incidents.module.ts` and `app.module.ts`
+- [x] 12. Wire the app and boot it for real
+  - [x] 12.1 Create `engine/engine.module.ts`, `incidents/incidents.module.ts` and `app.module.ts`
     - _Requirements: 9.1_
 
-  - [ ] 12.2 Create `main.ts`
+  - [x] 12.2 Create `main.ts`
     - Call `loadEngineConfig(process.env)` before `NestFactory.create`; on `ConfigError` log `[Bootstrap] <message>. Exiting.` and `process.exit(1)`.
     - `ValidationPipe({ whitelist: true })`, `enableCors({ origin })`, custom IoAdapter, listen on `PORT`.
     - _Requirements: 9.1, 9.5, 13.1, 13.3_
 
-  - [ ] 12.3 Write a unit test that builds the full `AppModule` with `Test.createTestingModule` (Prometheus client and poller timers mocked) and calls `app.init()`
+  - [x] 12.3 Write a unit test that builds the full `AppModule` with `Test.createTestingModule` (Prometheus client and poller timers mocked) and calls `app.init()`
     - Catches module wiring errors (like the victim-app `exports` bug) that per-class tests can't see.
     - _Requirements: 9.1_
 
-  - [ ] 12.4 Smoke run: `npm run build`, confirm the entry is at `dist/main.js`, start it against the running victim stack (`PROMETHEUS_URL=http://localhost:9090`, service URLs on localhost), and check `/health`, `/api/snapshot` and one chaos proxy call by hand
+  - [x] 12.4 Smoke run: `npm run build`, confirm the entry is at `dist/main.js`, start it against the running victim stack (`PROMETHEUS_URL=http://localhost:9090`, service URLs on localhost), and check `/health`, `/api/snapshot` and one chaos proxy call by hand
     - _Requirements: 12.5_
 
 - [ ] 13. Write the Dockerfile and root `.dockerignore`
