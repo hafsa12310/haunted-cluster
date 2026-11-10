@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Run Haunting Engine Related Tests on Save",
+      "trigger": "PostFileSave",
+      "description": "When a TypeScript file inside haunting-engine/src is saved, run Jest tests related to that file.",
+      "matcher": "haunting-engine/src/.*\\.tsx?$",
+      "action": {
+        "type": "command",
+        "command": "cd haunting-engine && npx jest --findRelatedTests \"$KIRO_FILE_PATH\" --passWithNoTests 2>&1",
+        "timeout": 120
+      }
+    }
+  ]
+}

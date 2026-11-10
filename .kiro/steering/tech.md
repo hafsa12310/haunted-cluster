@@ -15,3 +15,11 @@
 - Never commit secrets or API keys.
 - Handle errors explicitly; never swallow exceptions silently.
 - Prefer small, readable functions over clever code.
+
+## Pinned versions (match across all Node projects)
+- NestJS 10.3.10, TypeScript 5.5.3, Jest 29.7.0, fast-check 3.20.0, @types/node 20.14.10.
+
+## Lessons from earlier phases
+- Every app milestone ends with a real boot (build, start, hit /health), not just a green test run.
+- Include a test that builds the full AppModule and calls app.init(), to catch module wiring errors that per-class tests miss.
+- Property-based tests use fast-check with at least 100 iterations, tagged `// Feature: <spec>, Property <N>: <text>`.
