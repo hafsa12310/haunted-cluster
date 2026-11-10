@@ -755,5 +755,23 @@ These run against the full `docker compose up` stack, using `socket.io-client` a
 ## Open Questions
 
 1. **Crash visibility.** With a 2 s scrape interval and a container that restarts in about 1–3 s, a crash may produce zero or one failed scrapes. Requirement 5.3 handles the one-scrape case. If demos show crashes going unnoticed, options are a 1 s scrape interval, or having the engine also probe each service's `/health` directly every Poll. Decide after measuring in the final checkpoint.
+
+   **Measured in the final checkpoint (2026-11-10):** 5 crashes of payments through the proxy, each from a settled, healthy cluster, watching for 25 s. Payments restarted all 5 times.
+
+   | Crash | `down` seen | Incidents opened |
+   |---|---|---|
+   | 1 | yes | `payments:down`; `gateway:errors` |
+   | 2 | no | `orders:errors` (gateway affected) |
+   | 3 | yes | `payments:down` |
+   | 4 | no | none |
+   | 5 | yes | `payments:down` (gateway, orders affected); then `orders:errors` (gateway affected) |
+
+   **3/5 crashes produced a `down` incident.** Two further effects this question did not anticipate:
+   - **A missed crash can be blamed on the wrong service** (crash 2): with no failed scrape, payments looks healthy throughout, so the upstream 502s make orders the most downstream service with errors.
+   - **A caught crash can leave a second, misattributed incident** (crashes 1 and 5): the failed requests stay in the 15 s `RATE_WINDOW` after payments is back up, and once payments looks healthy again, attribution moves to orders (or gateway).
+
+   A 1 s scrape interval would make missing a short restart less likely but not impossible, and would not fix the second effect. A direct `/health` probe per Poll would catch most restarts, and could also suppress `errors` attribution upstream of a service that was down within the last `RATE_WINDOW`. **Decision (2026-11-10): recorded only, no change for now.** Latency and error-rate chaos attributed correctly in every test; revisit if crash demos matter.
 2. **Frontend port.** `CORS_ORIGIN` defaults to `http://localhost:3100`, assuming the haunted-house Next.js app runs there (3000 is taken by gateway). The haunted-house spec must match it or override the variable.
 3. **Memory thresholds.** `MEMORY_OK_MB=120` assumes idle victim RSS is well below that. The final checkpoint records real idle RSS and adjusts the default if needed.
+
+   **Measured in the final checkpoint (2026-11-10):** idle, with the load generator running and no chaos, over 15 snapshots in 45 s after the stack had been up 44 minutes: RSS gateway 84.1–84.7 MB, orders 83.2–83.6 MB, payments 80.5–80.9 MB (71–77 MB just after start). p95 latency peaked at 24.7 ms (gateway) and the error ratio was 0. Both are well inside the defaults (35 MB below `MEMORY_OK_MB=120`; p95 under `LATENCY_OK_MS=100`), so **no defaults were changed.**

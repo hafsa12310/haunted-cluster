@@ -206,27 +206,27 @@ Build the `shared/` types-only package and the `haunting-engine` NestJS app. Imp
   - Run `docker compose up --build` from the repo root; confirm all six services start and `haunting-engine` is healthy and emitting snapshots within 30 seconds.
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 16. Write integration tests (`haunting-engine/test/`)
-  - [ ] 16.1 Create `test/jest-e2e.json` and `test/helpers.ts` (engine URL from `ENGINE_URL`, default `http://localhost:4000`; a `nextEvent(socket, name, predicate, timeoutMs)` helper; `afterAll` calls `/api/chaos/reset-all`)
+- [x] 16. Write integration tests (`haunting-engine/test/`)
+  - [x] 16.1 Create `test/jest-e2e.json` and `test/helpers.ts` (engine URL from `ENGINE_URL`, default `http://localhost:4000`; a `nextEvent(socket, name, predicate, timeoutMs)` helper; `afterAll` calls `/api/chaos/reset-all`)
     - _Requirements: 9.1_
 
-  - [ ] 16.2 Snapshot stream test
+  - [x] 16.2 Snapshot stream test
     - Snapshot with `metricsAvailable: true` within 10 s; all three services `healthy` within 30 s.
     - _Requirements: 9.2, 12.5_
 
-  - [ ] 16.3 Incident lifecycle and chaos evidence test
+  - [x] 16.3 Incident lifecycle and chaos evidence test
     - Error rate 100 % on orders via the proxy → `incident:opened` (root orders, `errors`, gateway affected, chaos event in `relatedChaos`) → reset → `incident:resolved` with the same ID within 45 s.
     - _Requirements: 4.1, 4.2, 5.2, 5.5, 7.6, 8.1, 9.3_
 
-  - [ ] 16.4 Recurrence test
+  - [x] 16.4 Recurrence test
     - Repeat 16.3's scenario; second incident has `recurrence.count ≥ 1` and `lastIncidentId` equal to the first incident's ID.
     - _Requirements: 6.2_
 
-  - [ ] 16.5 Chaos proxy error test
+  - [x] 16.5 Chaos proxy error test
     - Unknown service → 404; `{ ms: -1 }` → 400.
     - _Requirements: 7.2, 7.3_
 
-- [ ] 17. Final checkpoint — Calibrate and verify
+- [x] 17. Final checkpoint — Calibrate and verify
   - With the stack idle (load generator running, no chaos), record each service's p95 latency, error ratio and RSS from `/api/snapshot`. If idle RSS is within 20 MB of `MEMORY_OK_MB` or idle p95 is above `LATENCY_OK_MS`, adjust the defaults in config, `.env.example` and design.md, and say so.
   - Trigger `crash` on payments 5 times via the proxy and record how many produced a `down` incident; record the result in design.md Open Question 1 and ask the user whether to act on it.
   - Run `npm run test:e2e` and `npm test` in both projects.
