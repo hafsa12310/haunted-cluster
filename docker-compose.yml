@@ -63,6 +63,11 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     depends_on:
       gateway:
         condition: service_healthy
@@ -81,4 +86,29 @@ services:
       LOAD_INTERVAL_MS: 500
     depends_on:
       gateway:
+        condition: service_healthy
+
+  haunting-engine:
+    build:
+      context: .
+      dockerfile: haunting-engine/Dockerfile
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+    environment:
+      PORT: 4000
+      PROMETHEUS_URL: http://prometheus:9090
+      SERVICE_CHAIN: gateway,orders,payments
+      GATEWAY_URL: http://gateway:3000
+      ORDERS_URL: http://orders:3001
+      PAYMENTS_URL: http://payments:3002
+      POLL_INTERVAL_MS: 2000
+      CORS_ORIGIN: http://localhost:3100
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      prometheus:
         condition: service_healthy

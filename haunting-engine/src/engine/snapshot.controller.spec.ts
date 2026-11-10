@@ -45,7 +45,9 @@ describe('SnapshotController (Requirement 10.2)', () => {
       providers: [EngineStateService],
     }).compile();
     app = moduleRef.createNestApplication();
-    await app.init();
+    // On 127.0.0.1, where supertest connects. Left to supertest, the server binds
+    // ::, and on macOS another app's 127.0.0.1 listener on the same port gets the request.
+    await app.listen(0, '127.0.0.1');
     state = moduleRef.get(EngineStateService);
   });
 

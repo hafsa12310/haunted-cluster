@@ -57,7 +57,9 @@ describe('AppModule', () => {
     // Fake timers only while starting: init schedules the first Poll, which we run
     // by hand. Timers the poller schedules after that stay fake and never fire.
     jest.useFakeTimers();
-    await app.init();
+    // On 127.0.0.1, where supertest connects. Left to supertest, the server binds
+    // ::, and on macOS another app's 127.0.0.1 listener on the same port gets the request.
+    await app.listen(0, '127.0.0.1');
     await jest.advanceTimersByTimeAsync(0);
     jest.useRealTimers();
   });

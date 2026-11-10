@@ -191,17 +191,17 @@ Build the `shared/` types-only package and the `haunting-engine` NestJS app. Imp
   - [x] 12.4 Smoke run: `npm run build`, confirm the entry is at `dist/main.js`, start it against the running victim stack (`PROMETHEUS_URL=http://localhost:9090`, service URLs on localhost), and check `/health`, `/api/snapshot` and one chaos proxy call by hand
     - _Requirements: 12.5_
 
-- [ ] 13. Write the Dockerfile and root `.dockerignore`
+- [x] 13. Write the Dockerfile and root `.dockerignore`
   - Exactly as in design.md Infrastructure.
   - Build with `docker build -f haunting-engine/Dockerfile .` from the repo root; check the build context size in the log is small (no `node_modules`), and run the image to confirm `CMD ["node", "dist/main"]` starts.
   - _Requirements: 12.1, 12.4_
 
-- [ ] 14. Update `docker-compose.yml`
+- [x] 14. Update `docker-compose.yml`
   - Add the `prometheus` healthcheck (first confirm `wget` exists in the image: `docker run --rm --entrypoint wget prom/prometheus:v2.53.0 --help`).
   - Add the `haunting-engine` service exactly as in design.md.
   - _Requirements: 12.2, 12.3_
 
-- [ ] 15. Checkpoint — Ensure all tests pass and the stack starts
+- [x] 15. Checkpoint — Ensure all tests pass and the stack starts
   - Run `npm test` in `haunting-engine/` and in `victim-app/`.
   - Run `docker compose up --build` from the repo root; confirm all six services start and `haunting-engine` is healthy and emitting snapshots within 30 seconds.
   - Ensure all tests pass, ask the user if questions arise.
