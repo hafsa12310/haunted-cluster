@@ -8,14 +8,14 @@ engine-intelligence adds a small learned layer to the haunting-engine. It watche
 2. **Memory forecasts.** A least-squares line through the last 15 RSS samples of each service, a time-to-limit estimate, and a warning with a clear reason.
 3. **Similar incidents.** A numeric feature vector per Incident and a cosine-similarity lookup over resolved history, next to the existing Fingerprint recurrence.
 
-None of this changes Health_Score, Service_Status, Breached_Kinds, Dread, attribution or the Incident lifecycle (R4.18, R9.7, R16.5). The new data is additive: two new `ClusterSnapshot` fields, one new `Incident` field and four new Socket.IO events, all defined once in `shared/`.
+None of this changes Health_Score, Service_Status, Breached_Kinds, Dread, attribution or the Incident lifecycle (R4.19, R9.7, R16.5). The new data is additive: two new `ClusterSnapshot` fields, one new `Incident` field and four new Socket.IO events, all defined once in `shared/`.
 
 Design goals:
 
 - **Pure core.** Every new decision is a pure function in `haunting-engine/src/intelligence/`. `PollerService` stays the only writer of engine state and calls the pure functions in a fixed order.
 - **Replayable.** The only time source is the Poll timestamp. The same Poll sequence always yields the same state and events (R9.8).
 - **Fail soft.** If an intelligence step throws, the Poll still stores and emits its snapshot with every pre-existing field unchanged (R9.6). A similarity failure sets one field to `null` (R8.14).
-- **Honest about the demo.** The memory-leak lead-time test only works if the victim-app leak really grows RSS. Measuring the current leak showed that it does not (see "Findings that change the plan" below), so this design includes a victim-app fix and lists the matching requirements change.
+- **Honest about the demo.** The memory-leak lead-time test only works if the victim-app leak really grows RSS. Measuring the current leak showed that it does not (see "Findings that change the plan" below), so this design includes a victim-app fix, which Requirement 15, Criterion 10 now specifies.
 
 ### Findings that change the plan
 
@@ -29,9 +29,9 @@ Two things were found while reading the real code and checking the running stack
 | In the payments container (Node 20.20.2): 100 × `'x'.repeat(524288)` | +0.25 MB RSS, +0.05 MB heap |
 | Local Node 23: 100 × `Buffer.alloc(1 MiB, 1)` | +100.4 MB RSS, +0.03 MB heap |
 
-With this leak the engine would never see RSS rise, no forecast could appear, and the Requirement 14 test could not pass. The fix is small (allocate real, touched memory) and is specified in "Victim-app changes". It contradicts Requirement 15, Criterion 8 ("leak mechanism unchanged"), so it is listed as a requirements change in the summary and in "Risks and decisions".
+With this leak the engine would never see RSS rise, no forecast could appear, and the Requirement 14 test could not pass. The fix is small (allocate real, touched memory) and is specified in "Victim-app changes". Requirement 15, Criterion 10 specifies it, and Requirement 15, Criterion 8 carves it out of the rule that other Victim_App behavior stays unchanged.
 
-**F2. A crash caused by the container memory limit is hard to observe through Requirement 14, Criterion 4.** The container limit is 256 MiB (`mem_limit: 256m`, cgroup `memory.max` = 268435456, confirmed in the payments container). The kernel kills the container when the whole cgroup reaches that limit, so process RSS never reaches `MEMORY_LIMIT_MB` = 256 in a sample. The only observable evidence is `up` equal to false or a large RSS drop after the restart. Earlier measurements already showed that a 1 to 3 s restart is missed by a 2 s scrape in 2 of 5 cases (haunting-engine design, Open Question 1). The test design therefore adds a third crash signal, an RSS drop above `FORECAST_RESTART_DROP_MB` (see "Integration test design").
+**F2. A crash caused by the container memory limit is hard to observe through Requirement 14, Criterion 4.** The container limit is 256 MiB (`mem_limit: 256m`, cgroup `memory.max` = 268435456, confirmed in the payments container). The kernel kills the container when the whole cgroup reaches that limit, so process RSS never reaches `MEMORY_LIMIT_MB` = 256 in a sample. The only observable evidence is `up` equal to false or a large RSS drop after the restart. Earlier measurements already showed that a 1 to 3 s restart is missed by a 2 s scrape in 2 of 5 cases (haunting-engine design, Open Question 1). Requirement 14, Criterion 4 therefore includes a third crash signal, an RSS fall of more than `FORECAST_RESTART_DROP_MB` below the maximum RSS seen in the run (see "Integration test design").
 
 ---
 
@@ -72,16 +72,16 @@ All of this happens inside `PollerService.poll(now)`. Items marked **(existing)*
 6. **Intelligence step** (inside `try`), `stepIntelligence(prevIntel, input, config)`:
    1. If the Poll is blind, return `prevIntel` unchanged with no events (R2.1, R4.7, R5.9, R6.10).
    2. **Forecast step** for every service in chain order: Memory_Drop handling, RSS_Window update, Trend_Fit, Forecaster. Produces this Poll's Memory_Forecasts and forecast events (R9.9).
-   3. Derive `leakSuspected[service]` from this Poll's Memory_Forecasts (R4.13). No anomaly state is read, so there is no cycle.
+   3. Derive `leakSuspected[service]` from this Poll's Memory_Forecasts (R4.14). No anomaly state is read, so there is no cycle.
    4. **Detect** raw anomalies against the baselines as they were before this Poll (R3.1).
-   5. Build one **observation** per (service, signal): `evaluated`, `unknown-service` or `unusable`.
-   6. **Track** streaks and confirmation; this returns events and the list of pairs to relearn (R4.2 to R4.15).
+   5. Build one **observation** per (service, signal), testing in this order: `unknown-service` (status `unknown`), `down-service` (`signals.up` is false), `unusable` (value `null` or not finite), otherwise `evaluated`.
+   6. **Track** streaks and confirmation; this returns events and the list of pairs to relearn (R4.2 to R4.16).
    7. **Learn**: apply the Poll value as one Baseline_Sample to every pair that passes all guards (R2.8).
    8. **Relearn reset** the pairs from step 6.
    9. Return the new state and the events, forecast events first, then anomaly events.
 7. On a throw in step 6: log with stack, keep `prevIntel`, emit no `anomaly:*` or `forecast:*` events (R9.6).
 8. `applySimilarity(tracker1, incidentEvents, now, …)` returns `tracker2` and `incidentEvents2`, each `opened` and `resolved` incident carrying its `similar` field. Failures are returned, not thrown, and the Poller logs them.
-9. `intelligenceView(intel, chain)` yields the `anomalies` and `forecasts` snapshot fields from the state that will be stored. Blind Polls and the error fallback use the same function on the retained state, so the three cases cannot drift apart (R4.17, R6.10, R9.6).
+9. `intelligenceView(intel, chain)` yields the `anomalies` and `forecasts` snapshot fields from the state that will be stored. Blind Polls and the error fallback use the same function on the retained state, so the three cases cannot drift apart (R4.18, R6.10, R9.6).
 10. Build the `ClusterSnapshot`, call `state.update(snapshot, tracker2, intel)`, then emit: snapshot, incident events, then forecast and anomaly events in the order the step returned them.
 
 The forecast step runs before anomaly tracking (R9.9), and `Leak_Suspicion` is evaluated on the same-Poll forecasts. The pre-Poll open-incident state is used by detection-side guards and by relearning. The post-Poll incident state (`tracker2`) is used only by similarity.
@@ -130,13 +130,13 @@ stateDiagram-v2
     Raw --> Confirmed: streak reaches ANOMALY_CONFIRM_POLLS, emit anomaly:detected
     Confirmed --> Confirmed: more Raw_Anomalies, no event
     Confirmed --> Quiet: clear streak reaches ANOMALY_CONFIRM_POLLS, emit anomaly:cleared
-    Confirmed --> Quiet: service becomes unknown, emit anomaly:cleared at once
+    Confirmed --> Quiet: service becomes unknown or down, emit anomaly:cleared at once
     Raw --> Relearned: streak reaches ANOMALY_RELEARN_POLLS and guards allow
     Confirmed --> Relearned: same
     Relearned --> Quiet: baseline count 0, streaks 0, flag unchanged
 ```
 
-`Relearned` is not a stored state. The reset zeroes the baseline and both streaks and leaves `confirmed` as it was, so the diagram shows where the pair continues, not an extra flag.
+A pair of a down or unknown service is cleared at once and keeps its Baseline. `Relearned` is not a stored state. The reset zeroes the baseline and both streaks and leaves `confirmed` as it was, so the diagram shows where the pair continues, not an extra flag.
 
 ### Forecast life cycle
 
@@ -232,7 +232,7 @@ export interface DetectionInput {
 
 /**
  * Raw anomalies for one non-blind Poll, in chain order then signal order
- * (latencyP95Ms, errorRatio, rssMb). Unknown services and non-finite values yield nothing.
+ * (latencyP95Ms, errorRatio, rssMb). Unknown services, down services (`up` false) and non-finite values yield nothing.
  */
 export function detectAnomalies(
   input: DetectionInput,
@@ -241,7 +241,7 @@ export function detectAnomalies(
 ): AnomalyReading[];
 ```
 
-Per (service, signal) with status not `unknown` and a finite value `x`:
+Per (service, signal) with status not `unknown`, `signals.up` not false and a finite value `x`:
 
 - Warm_Up (`count < warmupPolls`): flag only if the matching badness is greater than `BREACH_BADNESS` (0.2, imported from `health/health-scoring`). Method `fixed`, `zScore` null (R3.3, R3.4).
 - Otherwise: `z = zScore(x, baseline, floor)`. Flag if `x > mean` and `z !== null && z > zThreshold`. Method `learned`. A fixed-threshold breach with `z <= zThreshold` is not flagged (R3.12). A value at or below the mean is never flagged (R3.5).
@@ -286,6 +286,7 @@ Otherwise exactly one sample is applied (R2.8). The function never resets; reset
 ```ts
 export type PairObservation =
   | { service: ServiceName; signal: MonitoredSignal; kind: 'unknown-service' }
+  | { service: ServiceName; signal: MonitoredSignal; kind: 'down-service' }           // up === false (Down_Service)
   | { service: ServiceName; signal: MonitoredSignal; kind: 'unusable' }          // null or non-finite value
   | { service: ServiceName; signal: MonitoredSignal; kind: 'evaluated'; reading: AnomalyReading | null };
 
@@ -317,15 +318,15 @@ export function trackAnomalies(
 ): { tracking: TrackingMap; events: AnomalyEvent[]; relearn: PairKey[] };
 ```
 
-Rules, per observation (R4.2 to R4.15):
+Rules, per observation (R4.2 to R4.16):
 
 - `evaluated` with a reading: `anomalousStreak += 1`, `clearStreak = 0`, `lastReading = reading`.
 - `evaluated` without a reading: `clearStreak += 1`, `anomalousStreak = 0`.
 - `anomalousStreak === confirmPolls` and not confirmed: set confirmed, emit `anomaly:detected` with this Poll's reading. Because the streak can only equal `confirmPolls` once per run, a confirmed pair never re-emits (R4.6).
 - `clearStreak === confirmPolls` and confirmed: clear the flag, emit `anomaly:cleared`. `lastReading` is dropped when the flag clears so the snapshot never shows a stale reading.
-- `unknown-service`: both streaks 0, confirmed false, `lastReading` null; emit `anomaly:cleared` if it was confirmed (R4.10).
-- `unusable`: the pair is left exactly as it was, no event (R4.11).
-- Relearn: if the pair is `evaluated`, `anomalousStreak >= relearnPolls`, `!openBefore[service]`, and not (`signal === 'rssMb'` and `leakSuspected[service]`), add the pair to `relearn` and set both streaks to 0 (R4.8, R4.9, R4.12 to R4.15). `confirmed` and `lastReading` are untouched by the reset. While a relearn is suppressed, the streak keeps counting with no cap (R4.14).
+- `unknown-service` and `down-service` share one branch: both streaks 0, confirmed false, `lastReading` null; emit `anomaly:cleared` if it was confirmed (R4.10, R4.11). The pair is never added to `relearn`, and its Baseline is untouched (R2.2, R2.5). Two kinds exist only so that tests and logs can tell the cause apart; the observation builder tests `unknown-service` first.
+- `unusable`: the pair is left exactly as it was, no event (R4.12). It applies only to a service that is neither unknown nor down.
+- Relearn: if the pair is `evaluated`, `anomalousStreak >= relearnPolls`, `!openBefore[service]`, and not (`signal === 'rssMb'` and `leakSuspected[service]`), add the pair to `relearn` and set both streaks to 0 (R4.8, R4.9, R4.13 to R4.16). `confirmed` and `lastReading` are untouched by the reset. While a relearn is suppressed, the streak keeps counting with no cap (R4.15).
 
 Events are ordered by chain order, then signal order. A pair with `confirmPolls` of 1 emits `detected` in its first anomalous Poll.
 
@@ -416,7 +417,7 @@ export function extractFeatures(
   config: FeatureConfig,
 ): FeatureVector;
 
-/** Drops the last entry (the duration). Used when comparing at open time. */
+/** Builds the Comparison_Vector: drops the last entry (the duration). Used when comparing at open time (R8.6). */
 export function withoutDuration(v: FeatureVector): FeatureVector;
 ```
 
@@ -488,7 +489,7 @@ Each incident is wrapped in its own `try/catch`. On a throw the field is `null` 
 
 ### The duration decision (R7.4)
 
-**Decision: the duration entry is excluded from the cosine when an Incident is matched at open time, and included when it is matched at resolve time.** At open, both the opening incident's vector and every candidate's vector go through `withoutDuration` before `cosineSimilarity`. At resolve, the full vectors are compared.
+**Decision (stated in R7.4 and R8.6): the duration entry is excluded from the cosine when an Incident is matched at open time, and included when it is matched at resolve time.** At open, the Comparison_Vector (the Feature_Vector without its duration entry) of the opening incident is compared with the Comparison_Vector of every candidate; `withoutDuration` builds it before `cosineSimilarity`. At resolve, the full Feature_Vectors are compared.
 
 Why not leave the zero in:
 
@@ -501,10 +502,10 @@ Why not weight the groups:
 
 Consistency with R7 and R8:
 
-- R7.1 to R7.8 are unchanged: the extractor still returns the full vector of length `2N + 8`, with the duration entry computed under R7.3 and R7.4.
+- R7.1 to R7.8 hold: the extractor still returns the full vector of length `2N + 8`, with the duration entry computed under R7.3 and R7.4. R7.4 now states that the duration entry has no weight at open time and the same weight as other entries at resolve time.
 - R8.1 to R8.5 hold for any pair of vectors, including shortened ones. Lengths always match because both sides are shortened together.
-- R8.6 compares "the Feature_Vector of the opened Incident" with the history vectors. This design compares the vectors without the duration entry. R7.4 explicitly leaves the duration weight to the design phase, so this is within scope, but R8.6 should say "comparison vector" so a reader does not assume the full vector. See the requirements tweaks in the summary.
-- R8.11 compares the "final Feature_Vector" at resolve, which includes duration. Resolve is where duration is a known, comparable value. The recomputed field can differ from the open-time one, and that is intended: open time is a prediction from shape, resolve time is a comparison of the whole incident.
+- R8.6 compares the Comparison_Vector of the opened Incident with the Comparison_Vectors of the resolved Incidents, which is what `matchOnOpen` does.
+- R8.11 compares the full final Feature_Vector at resolve, which includes duration. Resolve is where duration is a known, comparable value. The recomputed field can differ from the open-time one, and that is intended: open time is a prediction from shape, resolve time is a comparison of the whole incident.
 - `SIMILARITY_DURATION_CAP_SECONDS` still has an effect, at resolve time.
 
 ### Feature vector storage
@@ -537,12 +538,12 @@ export function intelligenceView(
 ): { anomalies: AnomalyReading[]; forecasts: MemoryForecast[] };
 ```
 
-`intelligenceView` returns `anomalies` as the `lastReading` of every pair with `confirmed` true, in chain order then signal order (R4.16), and `forecasts` as the non-null `forecast` of every service in chain order (R6.13). It is the only place that turns state into snapshot fields.
+`intelligenceView` returns `anomalies` as the `lastReading` of every pair with `confirmed` true, in chain order then signal order (R4.17), and `forecasts` as the non-null `forecast` of every service in chain order (R6.13). It is the only place that turns state into snapshot fields.
 
 ### Wiring and emission
 
 - `EngineStateService` gains `private intelligenceState`, a getter `intelligence`, and `update(snapshot, tracker, intelligence)`. The three are replaced together so a reader never sees a snapshot from one Poll and an intelligence state from another. `openIncidents()` and `resolvedIncidents()` are unchanged.
-- `PollerService` keeps its constructor. It reads and writes the intelligence state through `EngineStateService`, so no provider changes. This also means the existing `app.module.spec.ts` already exercises the wiring (R13.1): it will be extended to assert the snapshot carries `anomalies` and `forecasts` after the first Poll.
+- `PollerService` keeps its constructor. It reads and writes the intelligence state through `EngineStateService`, so no provider changes. There are no new Nest providers, so the wiring test of R13.1 is the existing `app.module.spec.ts`, extended: it builds the real `AppModule`, calls `app.init()`, and asserts that the first stored snapshot has `anomalies` and `forecasts` fields.
 - `EventsGateway` gains `emitIntelligenceEvent(event: IntelligenceEvent)`, which maps the internal event to the Socket.IO event name and payload with an exhaustive `switch`. `handleConnection` is unchanged: the latest snapshot already carries the current anomalies and forecasts (R10.9, R10.10).
 - `incident-tracker.ts` gets one change: `openIncident` sets `similar: null` in the object it builds, because `Incident.similar` is a required field (R10.4). No decision logic in the tracker changes.
 
@@ -558,7 +559,7 @@ export function intelligenceView(
 
 **Leak rate (R15.1, R15.2, R15.7, R15.9).** `docker-compose.yml` sets `LEAK_MB_PER_SECOND: ${LEAK_MB_PER_SECOND:-2}` and `MEMORY_GAUGE_INTERVAL_MS: ${MEMORY_GAUGE_INTERVAL_MS:-1000}` on `gateway`, `orders` and `payments`. `victim-app/.env.example` lists `LEAK_MB_PER_SECOND=2` and `MEMORY_GAUGE_INTERVAL_MS=1000`, each with a one-line description. The code default in `chaos.service.ts` stays `'5'`.
 
-**Real leak memory (required by finding F1, not in the current requirements).** In `ChaosService.enableMemoryLeak()` the pushed entry changes from `'x'.repeat(ONE_MB_STRING_LENGTH)` to `Buffer.alloc(ONE_MB_BYTES, 1)` with `ONE_MB_BYTES = 1024 * 1024`. The fill value forces the pages to be touched, so they count as resident. The array is still `unknown[]`, so `_leakArray.length`, `reset()`, TTL expiry and `getState()` behave as before and the existing tests that assert on array length keep passing. New tests: each entry is a `Buffer` of `1_048_576` bytes, and a test with real timers that enables the leak for about 3 ticks and asserts `process.memoryUsage().rss` grew by at least half of the nominal amount.
+**Real leak memory (finding F1; Requirement 15, Criterion 10, carved out of Criterion 8).** In `ChaosService.enableMemoryLeak()` the pushed entry changes from `'x'.repeat(ONE_MB_STRING_LENGTH)` to `Buffer.alloc(ONE_MB_BYTES, 1)` with `ONE_MB_BYTES = 1024 * 1024`. The fill value forces the pages to be touched, so they count as resident. The unit count (`LEAK_MB_PER_SECOND` per second) is unchanged. The array is still `unknown[]`, so `_leakArray.length`, `reset()`, TTL expiry and `getState()` behave as before and the existing tests that assert on array length keep passing. New tests: each entry is a `Buffer` of `1_048_576` bytes, and a test with real timers that enables the leak for about 3 ticks and asserts `process.memoryUsage().rss` grew by at least half of the nominal amount.
 
 ### Shared types
 
@@ -876,9 +877,9 @@ and for each of `gateway`, `orders`, `payments`, the two lines `LEAK_MB_PER_SECO
 
 ### Property 11: Nothing evaluable, nothing flagged
 
-*For any* input, `detectAnomalies` SHALL return no reading for a pair whose service is unknown or whose value is `null`, `NaN` or infinite, and `stepIntelligence` SHALL feed the tracker nothing in a Blind_Poll.
+*For any* input, `detectAnomalies` SHALL return no reading for a pair whose service is unknown or down (`up` false) or whose value is `null`, `NaN` or infinite, and `stepIntelligence` SHALL feed the tracker nothing in a Blind_Poll.
 
-**Validates: Requirements 3.7, 3.8, 3.9**
+**Validates: Requirements 3.1, 3.7, 3.8, 3.9**
 
 ### Property 12: Confirmation and clearing events fire once, at the right Poll
 
@@ -890,37 +891,37 @@ and for each of `gateway`, `orders`, `payments`, the two lines `LEAK_MB_PER_SECO
 
 *For any* Poll sequence and any positions at which Blind_Polls are inserted, the Intelligence_State after each Blind_Poll SHALL be deeply equal to the state before it, no `anomaly:*` or `forecast:*` event SHALL be emitted in it, its `intelligenceView` SHALL equal that of the last non-blind Poll (or two empty lists when there was none), and the final state SHALL equal the state of the sequence without the Blind_Polls.
 
-**Validates: Requirements 4.7, 4.17, 5.9, 6.10**
+**Validates: Requirements 4.7, 4.18, 5.9, 6.10**
 
-### Property 14: Unknown services clear at once and unusable values freeze the pair
+### Property 14: Unknown and down services clear at once and unusable values freeze the pair
 
-*For any* tracking state, an `unknown-service` observation SHALL set both streaks to 0, `confirmed` to false and `lastReading` to `null`, and SHALL emit `anomaly:cleared` exactly when the pair was confirmed; an `unusable` observation SHALL leave the pair deeply equal and emit nothing.
+*For any* tracking state, an `unknown-service` or a `down-service` observation SHALL set both streaks to 0, `confirmed` to false and `lastReading` to `null`, SHALL emit `anomaly:cleared` exactly when the pair was confirmed, and SHALL never put the pair in `relearn`; an `unusable` observation SHALL leave the pair deeply equal and emit nothing. At pipeline level, in any non-blind Poll in which a service has `up` false, `intelligenceView(state).anomalies` SHALL contain no reading of that service afterwards, and the Baselines of that service SHALL be deeply equal to those before the Poll.
 
-**Validates: Requirements 4.10, 4.11**
+**Validates: Requirements 2.5, 4.10, 4.11, 4.12, 4.17**
 
 ### Property 15: Relearn happens in exactly the first eligible Poll
 
 *For any* Poll sequence, a pair SHALL be relearn-reset in a Poll if and only if its Anomalous_Streak including that Poll is at least `relearnPolls`, the service had no Open_Incident before the Poll's incident step, and the pair is not suppressed by Leak_Suspicion; after the reset the Baseline count SHALL be 0, both streaks SHALL be 0, and `confirmed` and `lastReading` SHALL be unchanged; while the service has an Open_Incident the streaks SHALL keep updating and no reset SHALL occur.
 
-**Validates: Requirements 4.8, 4.9, 4.12**
+**Validates: Requirements 4.8, 4.9, 4.13**
 
 ### Property 16: A suspected leak is never relearned as normal
 
 *For any* Poll sequence, no relearn reset of the `rssMb` Baseline of a service SHALL occur in a Poll in which that service's Memory_Forecast from the same Poll has an active warning or a slope above `minSlopeMbPerS`; during the suppression the Anomalous_Streak SHALL keep counting without a cap, the reset SHALL occur in the first non-blind Poll in which Leak_Suspicion has ended and the other relearn conditions hold, and the relearn decisions for `latencyP95Ms` and `errorRatio` of the same service and for every signal of other services SHALL not depend on Leak_Suspicion.
 
-**Validates: Requirements 4.13, 4.14, 4.15, 9.9**
+**Validates: Requirements 4.14, 4.15, 4.16, 9.9**
 
 ### Property 17: Reported anomalies are exactly the confirmed ones, in order
 
 *For any* Intelligence_State, `intelligenceView(state).anomalies` SHALL contain the `lastReading` of every pair with `confirmed` true and no other reading, ordered by chain position and then `latencyP95Ms`, `errorRatio`, `rssMb`; a pair that is only a Raw_Anomaly SHALL not appear.
 
-**Validates: Requirements 4.16**
+**Validates: Requirements 4.17**
 
 ### Property 18: Existing decisions do not depend on the intelligence layer
 
 *For any* Poll sequence, the `ServiceHealth` list, `dread`, attributions, incident ids, kinds, affected services, fingerprints, `recurrence`, `relatedChaos`, statuses and events produced by `trackIncidents` followed by `applySimilarity` SHALL equal those produced by `trackIncidents` alone once the `similar` field is ignored; `applySimilarity` SHALL change the `similar` field only of incidents that open or resolve in that Poll, and no field of any other incident in `open` or `history`.
 
-**Validates: Requirements 4.18, 8.12, 8.13, 9.7**
+**Validates: Requirements 4.19, 8.12, 8.13, 9.7**
 
 ### Property 19: The RSS_Window follows its update rule
 
@@ -1036,10 +1037,11 @@ and for each of `gateway`, `orders`, `payments`, the two lines `LEAK_MB_PER_SECO
 | `stepIntelligence` throws | Poller logs `Intelligence step failed: <message>` with the stack, keeps the previous Intelligence_State, emits no `anomaly:*` or `forecast:*` events, and still stores and emits the snapshot with pre-existing fields unchanged (R9.6) |
 | `matchOnOpen` or `matchOnResolve` throws for one incident | `similar` is `null`; `applySimilarity` returns a `SimilarityFailure`; Poller logs it with the stack; the incident still opens or resolves and its event is emitted (R8.14) |
 | `PollerService` fails outside both steps | Unchanged: existing handler in `tick()` logs the error and the loop continues |
-| Non-finite signal value | Treated as unusable: no sample, no flag, pair state frozen (R2.4, R3.7, R4.11) |
+| Non-finite signal value | Treated as unusable: no sample, no flag, pair state frozen for an up service (R2.4, R3.7, R4.12) |
 | `cosineSimilarity` given vectors of different length | Returns 0, never throws (R8.5) |
 | `fitTrend` given equal timestamps or non-finite results | Returns `null`, so no forecast is produced |
 | Service is `unknown` while metrics are available | Anomaly pairs clear at once (R4.10); the RSS_Window and any warning are left as they were (R5.2 only skips the sample) |
+| Service has `up` false in a non-blind Poll | Anomaly pairs clear at once, exactly as for an unknown service (R4.11); Baselines unchanged (R2.5); the forecast step handles it as a Memory_Drop (R6.6) |
 | Duplicate or non-increasing Poll timestamps | A window with all-equal timestamps yields no fit; mixed windows fit normally. The Poller's clock is monotonic in practice, so this is defensive only |
 
 The two intelligence try/catch blocks are separate on purpose: a bug in similarity cannot freeze anomaly detection, and a bug in forecasting cannot drop similar-incident data. Nothing is swallowed: every catch logs the error with its stack (tech.md rule).
@@ -1060,12 +1062,12 @@ The correctness properties merge acceptance criteria that say the same thing. Th
 - R1.3 to R1.7 all describe the one update rule and merge into one property. R1.8 (non-finite no-op) and R1.9 (reset) stay separate because they have different inputs and are cheap to read.
 - R2.1 to R2.6 and R2.9 are the same shape ("this guard applies, so nothing changes") and merge into one property with a guard generator. R2.8 and R12.4 are the converse and become the replay-equivalence property. R2.7 needs the pipeline and the incident state, so it is separate.
 - R3.2, R3.5 and R3.12 merge (the learned rule). R3.3 and R3.4 merge (the warm-up rule). R3.7 to R3.9 merge ("no reading when nothing is evaluable"). R3.6 and R3.10 merge (floor and finite z-score).
-- R4.2 to R4.6 merge into one event-timing property. R4.8, R4.9 and R4.12 merge (relearn decision). R4.13 to R4.15 merge (leak suppression). R4.10 and R4.11 merge.
-- R4.7, R4.17, R5.9 and R6.10 are all "a blind Poll changes nothing", one property.
+- R4.2 to R4.6 merge into one event-timing property. R4.8, R4.9 and R4.13 merge (relearn decision). R4.14 to R4.16 merge (leak suppression). R4.10 to R4.12 merge (unknown, down and unusable pairs).
+- R4.7, R4.18, R5.9 and R6.10 are all "a blind Poll changes nothing", one property.
 - R5.1, R5.2 and R5.10 merge. R5.4 to R5.7 merge. R5.3 and R5.8 merge.
 - R6.5 to R6.7 merge into one clear-reason property. R6.2, R6.3 and R6.8 merge. R6.4 and R6.13 merge.
 - R3.11, R5.11, R7.8, R9.1, R9.2 and R9.8 all say "pure and replayable" and merge into one property over generated Poll sequences with deep-frozen inputs.
-- R4.18, R8.12, R8.13 and R9.7 merge into the "existing decisions are unaffected" property.
+- R4.19, R8.12, R8.13 and R9.7 merge into the "existing decisions are unaffected" property.
 - Not properties (examples, integration or documentation): R8.14, R9.3 to R9.7, R10.1 to R10.7, R10.9, R10.10, R11, R12, R13, R14, R15 (except R15.5), R16.
 
 ### Property-based tests (fast-check 3.20.0)
@@ -1097,8 +1099,8 @@ Property 6 uses an independent reference model inside the test: a plain loop tha
 - **File checks (R11.11, R11.12, R15.1, R15.2, R15.7):** a spec parses `haunting-engine/.env.example`, `victim-app/.env.example` and `docker-compose.yml` and asserts every variable is listed with the documented default, that compose uses `${NAME:-default}` with matching defaults, and that the two `INTEGRATION_*` variables are in `.env.example` but not in compose.
 - **`PollerService` (existing spec extended):** the call order (forecast before tracking, pre-Poll incident state passed), an injected throw in `stepIntelligence` (state kept, snapshot emitted with `anomalies` and `forecasts` from the retained state, no intelligence events, R9.6), a throw in similarity (`similar` null, event still emitted, error logged, R8.14), event emission order, and that a Blind_Poll snapshot repeats the previous `anomalies` and `forecasts`.
 - **`EventsGateway`:** `emitIntelligenceEvent` maps each of the four internal events to the right Socket.IO name and payload; a connecting client still gets the latest snapshot, now with `anomalies` and `forecasts` (R10.9).
-- **`AppModule` (R13.1):** the existing `app.module.spec.ts` builds the real `AppModule`, calls `app.listen`/`init`, and is extended to assert the first stored snapshot has `anomalies: []` and `forecasts: []`.
-- **Worked examples:** a replay of a scripted leak (flat 85 MB for 10 Polls, then +4 MB per 2 s Poll) asserting the warning appears on the expected Poll and the `rssMb` baseline is not relearned; a latency spike that confirms after two Polls and clears after two; a payments restart sequence (`up` false for one Poll) asserting `memory-dropped`.
+- **`AppModule` (R13.1):** the existing `app.module.spec.ts` is extended. It builds the real `AppModule` (no new providers), calls `app.init()`, and asserts that the first stored snapshot has `anomalies: []` and `forecasts: []`.
+- **Worked examples:** a replay of a scripted leak (flat 85 MB for 10 Polls, then +4 MB per 2 s Poll) asserting the warning appears on the expected Poll and the `rssMb` baseline is not relearned; a latency spike that confirms after two Polls and clears after two; a payments restart sequence (`up` false for one Poll) asserting `memory-dropped`, `anomaly:cleared` for every confirmed payments pair in that same Poll, and unchanged payments Baselines; and a flapping sequence (`up` alternating false and true) asserting one `detected` and one `cleared` per cycle only when `confirmPolls` anomalous Polls separate the outages.
 - **Victim-app:** `metrics.service.spec.ts` updated from 5000 ms to 1000 ms and extended with default, override and invalid-value cases (R12.6); `chaos.service.spec.ts` extended with the Buffer-entry and RSS-growth checks; `parseMemoryGaugeIntervalMs` examples for each invalid class.
 - **Specs that must be updated for the new required fields:** `poller.service.spec.ts`, `events.gateway.spec.ts`, `snapshot.controller.spec.ts`, `incident-tracker.spec.ts`, `incident-tracker.prop.spec.ts`, `incidents.controller.spec.ts`, `app.module.spec.ts` and the e2e helpers, wherever they build a `ClusterSnapshot` or `Incident` literal (they need `anomalies`, `forecasts` and `similar`).
 
@@ -1124,12 +1126,12 @@ File: `haunting-engine/test/memory-leak-forecast.e2e-spec.ts`, run by `npm run t
 4. **Inject.** `POST /api/chaos/payments/memory-leak {enabled: true}`.
 5. **Observe.** Every 1 s `GET /api/snapshot`, skipping a snapshot whose `timestamp` was already seen. Track the maximum payments RSS seen. Until `INTEGRATION_LEAK_TIMEOUT_SECONDS` elapses:
    - **Warning time** is the `timestamp` of the first snapshot whose `forecasts` has a payments entry with `warning: true` (R14.3).
-   - **Crash time** is the `timestamp` of the first snapshot where payments is `down`, or payments RSS ≥ `MEMORY_LIMIT_MB` (256), or payments RSS has fallen more than 20 MB (the default `FORECAST_RESTART_DROP_MB`) below the maximum RSS seen in this run (R14.4, plus the added third signal, see F2).
+   - **Crash time** is the `timestamp` of the first snapshot where payments is `down`, or payments RSS ≥ `MEMORY_LIMIT_MB` (256), or payments RSS has fallen more than 20 MB (the default `FORECAST_RESTART_DROP_MB`) below the maximum RSS seen in this run (R14.4; the third signal is explained in F2). Observation stops at the crash time.
 6. **Assert.**
    - Crash seen: the warning time must exist (else fail "no forecast warning was observed", R14.9) and be earlier than the crash time (R14.5); lead = crash − warning in seconds, printed with `INTEGRATION_MIN_LEAD_SECONDS` (R14.6); a lead below the minimum fails with lead, warning time, crash time and minimum (R14.10).
    - No crash by the timeout: assert only that a warning was observed, print "no crash occurred", skip the lead assertions (R14.8).
 7. **Supplementary assertion.** A Socket.IO client connected before step 4 must have received exactly one `forecast:warning` for payments, and after a crash a `forecast:cleared` with reason `memory-dropped` (R6.3, R6.7). This is checked with `nextEvent`-style listeners and does not feed the lead time.
-8. **Always clean up.** `afterAll` calls `resetAllChaos()` (R14.12), closes the socket, and calls `waitForNoOpenIncidents()` so a payments incident left by the crash does not hide events in the next test file.
+8. **Always clean up.** Unless step 2 returned because the stack is not running (R14.12, R14.13), `afterAll` calls `resetAllChaos()` (R14.12), closes the socket, and calls `waitForNoOpenIncidents()` so a payments incident left by the crash does not hide events in the next test file.
 
 Timestamps are the engine's Poll timestamps from the snapshot, not the test machine's clock, so the lead time is measured on one clock. The per-test timeout is set explicitly to `(INTEGRATION_LEAK_TIMEOUT_SECONDS + 60) × 1000` ms because `jest-e2e.json` defaults to 90 s.
 
@@ -1171,7 +1173,7 @@ Sensitivity (same simulation, kill at 250 MB):
 | Problem | Effect | Fix |
 |---|---|---|
 | The current leak allocates no RSS (F1) | RSS never rises, no warning, no crash: the test cannot pass at any rate | Allocate `Buffer.alloc(1 MiB, 1)` per unit. Required |
-| RSS never reaches `MEMORY_LIMIT_MB` in a sample (F2) | R14.4's RSS clause never triggers; the crash is seen only as `down` or not at all | Add the RSS-drop crash signal in the test (above). Needs a requirements tweak |
+| RSS never reaches `MEMORY_LIMIT_MB` in a sample (F2) | R14.4's RSS clause never triggers; the crash is seen only as `down` or not at all | Use the RSS-drop crash signal in the test (above), which R14.4 now includes |
 | About 2 of 5 short restarts show no `down` (haunting-engine design, Open Question 1) | With only `down` the test would fall into the "no crash" path after 300 s and silently skip the lead check | Same RSS-drop signal: the first Poll after the restart sees RSS back near 70 to 85 MB |
 | A leak rate at or below about 1.4 MB/s never kills the container before the 120 s TTL (threshold `(250 − 85) / 120`) | No crash, lead check skipped | Keep the 2 MB/s default; do not lower it without raising `CHAOS_TTL_SECONDS` |
 | Engine forecasts against 256 MB but the kill is at about 245 to 255 MB | Time to limit is over-estimated by (256 − RSS at kill) / slope, about 3 to 5 s at 2 MB/s | Accepted: inside the margin. Not worth a separate effective-limit setting |
@@ -1232,27 +1234,39 @@ Neither layer fixes the issue and neither changes engine behavior for it. The is
 
 ---
 
-## Risks and decisions beyond the requirements
+## Risks and decisions
+
+### Requirements aligned with this design
+
+These points were earlier listed as open requirements inconsistencies. They are now resolved in `requirements.md` and are not open issues:
+
+- **Real leak memory:** R15.10 requires each leak unit to be real, touched memory (`Buffer.alloc` with a fill value, at least 1 MiB of RSS per unit), and R15.8 carves it out of "other Victim_App behavior unchanged".
+- **Crash signal:** R14.4 includes an RSS fall of more than `FORECAST_RESTART_DROP_MB` below the maximum RSS seen in the run, and R14.1 stops observing at the crash time.
+- **Stack not running:** R14.13 says the test logs the stack-required message and returns from each test, because Jest 29 has no runtime skip; R14.12 excepts that case.
+- **Open-time comparison:** R8.6 compares Comparison_Vectors (a new glossary term), R8.11 keeps the full final Feature_Vector, and R7.4 states the duration decision.
+- **No forecast without a fit:** R6.9 reports no Memory_Forecast when there is no Trend_Fit and no active Forecast_Warning, consistent with R6.13 and the glossary.
+- **Wiring test:** R13.1 describes the extended `app.module.spec.ts` with the real `AppModule`; there are no new providers.
+- **Down services:** R4.11 clears the anomaly pairs of a Down_Service at once, and R4.12 keeps the freeze for a `null` or non-finite value of an up service. This replaced the earlier "R4.11 vs R2.5" note.
+
+Renumbering in R4: the old R4.11 is split into R4.11 and R4.12, and the old R4.12 to R4.18 are now R4.13 to R4.19.
 
 ### Decisions beyond the requirements
 
-1. **Real leak memory (F1).** The victim-app leak is changed to allocate touched `Buffer`s. Requirement 15, Criterion 8 says the leak mechanism stays unchanged, so this needs a requirements change. Without it Requirement 14 cannot pass.
-2. **Duration excluded from the cosine at open time (R7.4).** Described above; needs a one-word wording change in R8.6.
-3. **Crash evidence in the integration test.** The test also treats an RSS fall above `FORECAST_RESTART_DROP_MB` as the crash (F2). R14.4 lists only `down` and RSS ≥ `MEMORY_LIMIT_MB`.
-4. **`baselineStdDev` is the floored value.** R3 only says "baseline standard deviation". Using the floored value lets a consumer recompute the z-score from the reading.
-5. **`SimilarIncident.durationSeconds` is whole seconds.** R8.9 says "duration in seconds" without a rounding rule. The rest of the model uses `durationMs`; the new type follows the requirement's wording.
-6. **`MemoryForecast` is always a full record.** R6.9 says the Forecaster reports a Memory_Forecast with null time to limit when no fit exists. Here "no fit and no warning" is represented as no forecast (`null` in state, absent from the snapshot), which is what R6.13 requires the snapshot to show. R6.9 should say so.
-7. **Event order.** Forecast events are emitted before anomaly events; within each, by chain order and then signal order. Incident events keep their place right after the snapshot.
-8. **Similarity at resolve sees same-Poll resolutions.** Two incidents resolving in one Poll each compare against the other.
-9. **`ConfigError.variables`.** A new field with all offenders; `variable` stays as the first one.
-10. **One tracker edit.** `openIncident` adds `similar: null`. No decision logic in `incident-tracker.ts` changes.
-11. **Feature vectors are derived, not stored.** See the storage section.
-12. **No new Nest provider.** R13.1 says "intelligence providers registered"; there are none because the layer is plain functions and the state lives in `EngineStateService`. The existing wiring test covers it.
+1. **`baselineStdDev` is the floored value.** R3 only says "baseline standard deviation". Using the floored value lets a consumer recompute the z-score from the reading.
+2. **`SimilarIncident.durationSeconds` is whole seconds.** R8.9 says "duration in seconds" without a rounding rule. The rest of the model uses `durationMs`; the new type follows the requirement's wording.
+3. **Event order.** Forecast events are emitted before anomaly events; within each, by chain order and then signal order. Incident events keep their place right after the snapshot.
+4. **Similarity at resolve sees same-Poll resolutions.** Two incidents resolving in one Poll each compare against the other.
+5. **`ConfigError.variables`.** A new field with all offenders; `variable` stays as the first one.
+6. **One tracker edit.** `openIncident` adds `similar: null`. No decision logic in `incident-tracker.ts` changes.
+7. **Feature vectors are derived, not stored.** See the storage section.
+8. **Down services share the unknown-service branch.** R4.11 clears a Down_Service like an Unknown_Service. The observation builder emits a separate `down-service` kind (tested after `unknown-service`) so tests and logs can tell the cause apart; the tracker handles both kinds in one branch. The detector also returns nothing for a down service even when its signal values are finite (stale), which R3.9 now says.
+9. **Integration test cleanup when the stack is absent.** R14.12 excepts the case of R14.13, because no chaos was injected and the stack cannot be reached to reset it.
 
 ### Risks
 
 - **Stale open-time similarity.** An incident's `kinds` and `affected` can grow after it opens (latency, then errors). The `similar` field is computed at open and recomputed only at resolve (R8.6, R8.11), so an open incident can show a match based on its early shape. `incident:updated` carries the old value.
-- **Anomalies stay latched while a service is `down`.** While `up` is false, latency, error and RSS values are usually `null`, which R4.11 treats as unusable and freezes. A confirmed anomaly therefore stays reported through the outage and clears only after `confirmPolls` clean Polls once the service is back. Treating `up` false like an unknown service for tracking would be a requirements change.
+- **A flapping or restarting service produces repeated detected and cleared pairs.** Under R4.11 a pair is cleared in the first Poll in which `up` is false, so an outage no longer keeps an anomaly latched. The cost is that a service that crash-loops or whose `up` flips (including one missed scrape) clears all its confirmed anomalies at once, and each return needs `ANOMALY_CONFIRM_POLLS` consecutive Raw_Anomalies to be reported again. A flapping service can therefore emit an `anomaly:detected` and an `anomaly:cleared` event for the same pair on every cycle. Baselines are kept across the outage (R2.5), so learned detection resumes at once without a new Warm_Up. The `down` Service_Status and the incident carry the outage itself; the frontend should not read the absence of an anomaly in a down room as health.
+- **A single missed scrape clears confirmed anomalies.** If one Poll reports `up` false for a healthy service, its confirmed anomalies are cleared immediately and then need re-confirmation. This is the accepted trade-off of clearing at once instead of latching.
 - **Frozen forecast on a missing RSS.** If `up` is true and `rssMb` is `null` for many Polls, no sample is appended (R5.2) and the forecast repeats its last values, with `timeToLimitSeconds` not counting down. A warning can therefore stay active and look current. It clears on a drop or a slope fall once samples return.
 - **A persistent fixed-threshold breach never leaves warm-up.** If a signal is above its fixed threshold from the start, every sample is flagged and never learned (R2.6), so detection stays on the fixed rules. Relearn does nothing useful there (count is already 0). This is the intended "chaos is never learned" behavior but means no learned baseline exists for a permanently bad service.
 - **Warm-up is 60 s of wall time.** 30 Polls at 2 s. After an engine restart (history and baselines are not persisted, out of scope) learned detection is off for a minute, and fixed thresholds apply.
@@ -1262,13 +1276,3 @@ Neither layer fixes the issue and neither changes engine behavior for it. The is
 - **`LEAK_MB_PER_SECOND` default differs between code (5) and compose (2).** R15.9 keeps the code default. Running a service outside compose gives the faster 5 MB/s leak.
 - **Test and spec churn.** Adding required fields to `ClusterSnapshot` and `Incident` touches many existing specs (listed in the testing strategy). They fail to compile until updated, which is the intended signal.
 - **The leak test takes about 90 to 100 s** of real time plus the clean-start wait, and leaves a payments incident that the cleanup waits out.
-
-### Requirements inconsistencies found
-
-- **R15.8 vs R14:** "leak mechanism unchanged" blocks the fix that makes the leak real. Add a criterion that each leak unit retains at least 1 MiB of RSS, and carve it out of R15.8.
-- **R14.4:** `RSS ≥ Memory_Limit_Mb` cannot be observed because the cgroup kills the container below it, and `down` is missed in some restarts. Add "or payments RSS falls more than `FORECAST_RESTART_DROP_MB` below the maximum seen".
-- **R14.13:** says "skipped … in the same way as the existing integration tests", but the existing e2e tests fail when the stack is not running (`connect()` rejects). Jest 29 has no runtime skip, so the design logs the message and returns from each test. The requirement should say that.
-- **R8.6 vs R7.4:** R8.6 compares "the Feature_Vector"; with the chosen design it compares the vector without the duration entry at open time.
-- **R6.9 vs R6.13:** "report a Memory_Forecast with null time" for no fit, but the snapshot omits such services. Reword R6.9 to "report no Memory_Forecast".
-- **R4.11 vs R2.5:** a `down` service keeps its confirmed anomalies (frozen) while its baselines are also frozen; consistent, but the frontend may show anomalies in a `down` room. Flagged as a risk, not changed.
-- **R13.1:** refers to "intelligence providers"; there are none (see decision 12).
