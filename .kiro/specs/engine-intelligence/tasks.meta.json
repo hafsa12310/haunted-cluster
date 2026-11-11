@@ -1,0 +1,48 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Create `shared/src/intelligence.ts`": [
+      {
+        "executionId": "bcee64d9-a80d-411e-be82-a325cd559da7",
+        "chatSessionId": "sess_fe5552c5-566e-4ec2-9f73-a0276234d06b",
+        "timestamp": 1794399880637
+      },
+      {
+        "executionId": "bcee64d9-a80d-411e-be82-a325cd559da7",
+        "chatSessionId": "sess_fe5552c5-566e-4ec2-9f73-a0276234d06b",
+        "timestamp": 1794399928225
+      }
+    ],
+    "1.2 Extend `ClusterSnapshot`, `Incident` and `ServerToClientEvents`": [
+      {
+        "executionId": "784f5624-aa38-45b4-bf13-bcd1c14e4fb4",
+        "chatSessionId": "sess_96213c18-9e09-4d89-8283-e671f2897a4b",
+        "timestamp": 1794400271489
+      },
+      {
+        "executionId": "784f5624-aa38-45b4-bf13-bcd1c14e4fb4",
+        "chatSessionId": "sess_96213c18-9e09-4d89-8283-e671f2897a4b",
+        "timestamp": 1794400308653
+      }
+    ],
+    "1.3 Re-export from `shared/src/index.ts` and rebuild `shared/dist`": [
+      {
+        "executionId": "ca1f3f00-092d-4c2e-a80d-7240e4d2caea",
+        "chatSessionId": "sess_001b08ec-073a-4c11-97aa-b77e283704fb",
+        "timestamp": 1794400369045
+      },
+      {
+        "executionId": "ca1f3f00-092d-4c2e-a80d-7240e4d2caea",
+        "chatSessionId": "sess_001b08ec-073a-4c11-97aa-b77e283704fb",
+        "timestamp": 1794400445053
+      }
+    ],
+    "1. Add shared intelligence types": [
+      {
+        "executionId": "ca1f3f00-092d-4c2e-a80d-7240e4d2caea",
+        "chatSessionId": "sess_001b08ec-073a-4c11-97aa-b77e283704fb",
+        "timestamp": 1794400445087
+      }
+    ]
+  }
+}

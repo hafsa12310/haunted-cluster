@@ -185,6 +185,7 @@ function openIncident(
     relatedChaos: input.chaosEvents
       .filter((e) => e.service === root && Date.parse(e.at) >= since)
       .sort((a, b) => Date.parse(b.at) - Date.parse(a.at)),
+    similar: null,
   };
 }
 

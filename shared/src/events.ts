@@ -6,6 +6,12 @@
  */
 import type { ChaosEvent } from './chaos';
 import type { Incident } from './incident';
+import type {
+  AnomalyClearedPayload,
+  AnomalyReading,
+  ForecastClearedPayload,
+  MemoryForecast,
+} from './intelligence';
 import type { ClusterSnapshot } from './service-health';
 
 export interface ServerToClientEvents {
@@ -15,6 +21,10 @@ export interface ServerToClientEvents {
   'incident:updated': (incident: Incident) => void;
   'incident:resolved': (incident: Incident) => void;
   'chaos:triggered': (event: ChaosEvent) => void;
+  'anomaly:detected': (reading: AnomalyReading) => void;
+  'anomaly:cleared': (payload: AnomalyClearedPayload) => void;
+  'forecast:warning': (forecast: MemoryForecast) => void;
+  'forecast:cleared': (payload: ForecastClearedPayload) => void;
 }
 
 /** The frontend only listens; chaos goes through REST so it gets HTTP status codes. */

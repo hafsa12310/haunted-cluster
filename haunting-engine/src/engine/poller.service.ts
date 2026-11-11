@@ -98,6 +98,8 @@ export class PollerService implements OnApplicationBootstrap, OnModuleDestroy {
       metricsAvailable,
       services: health,
       dread: clusterDread(health),
+      anomalies: [],
+      forecasts: [],
     };
     const byService = Object.fromEntries(health.map((h) => [h.service, h])) as Record<
       ServiceName,

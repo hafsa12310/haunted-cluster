@@ -304,7 +304,7 @@ The feature also assesses whether baselines or forecasting could reduce the know
    - serializing Cluster_Snapshots and Incidents to JSON and parsing back produces a value equal to the original (R10.8)
 4. THE Engine SHALL include a property test that generates Poll sequences containing Blind_Polls, Unknown_Services and Open_Incidents, and asserts that the Baselines after the full sequence are equal to the Baselines obtained by replaying only the Polls for which no learning guard applies (R2.8).
 5. THE Engine SHALL include a unit test for `loadEngineConfig` that asserts every default value listed in Requirement 11 Criterion 1 (including `ANOMALY_CONFIRM_POLLS` 2, `ANOMALY_RELEARN_POLLS` 30, `FORECAST_WINDOW_POLLS` 15 and `FORECAST_MIN_SAMPLES` 5) and asserts that each rejection case in Requirement 11 Criteria 3 to 9 causes startup to fail with a message naming the offending variable, including the case `ANOMALY_RELEARN_POLLS` less than `ANOMALY_CONFIRM_POLLS`.
-6. THE Victim_App SHALL include unit tests for the `MEMORY_GAUGE_INTERVAL_MS` handling of Requirement 15 that assert the default of 1000, a valid override, and the rejection of each invalid value class named in Requirement 15, Criterion 4.
+6. THE Victim_App SHALL include unit tests for the `MEMORY_GAUGE_INTERVAL_MS` handling of Requirement 15 that assert the default of 1000, a valid override, and the rejection of each invalid value class named in Requirement 15, Criterion 5.
 
 ### Requirement 13: Boot and Module Wiring
 

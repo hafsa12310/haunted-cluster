@@ -8,19 +8,19 @@ Tasks 1 and 3 to 6 cover shared types, configuration and the pure functions, and
 
 ## Tasks
 
-- [ ] 1. Add shared intelligence types
-  - [ ] 1.1 Create `shared/src/intelligence.ts`
+- [x] 1. Add shared intelligence types
+  - [x] 1.1 Create `shared/src/intelligence.ts`
     - Define `MonitoredSignal` (`'latencyP95Ms' | 'errorRatio' | 'rssMb'`), `AnomalyMethod`, `AnomalyReading`, `ForecastClearReason` (`'stopped-rising' | 'memory-dropped'`), `MemoryForecast`, `SimilarIncident`, `AnomalyClearedPayload` and `ForecastClearedPayload` exactly as in design.md "Shared types".
     - Only `interface` and `type` declarations: no enums, no `const`, no functions. Every field is a number, string, boolean or `null`, never `undefined`.
     - _Requirements: R10.1, R10.2, R10.5, R10.8_
 
-  - [ ] 1.2 Extend `ClusterSnapshot`, `Incident` and `ServerToClientEvents`
+  - [x] 1.2 Extend `ClusterSnapshot`, `Incident` and `ServerToClientEvents`
     - In `shared/src/service-health.ts` add `anomalies: AnomalyReading[]` and `forecasts: MemoryForecast[]` to `ClusterSnapshot`.
     - In `shared/src/incident.ts` add `similar: SimilarIncident | null` to `Incident`.
     - In `shared/src/events.ts` add `'anomaly:detected'`, `'anomaly:cleared'`, `'forecast:warning'` and `'forecast:cleared'` to `ServerToClientEvents` with the payloads from the design.
     - _Requirements: R10.3, R10.4, R10.5_
 
-  - [ ] 1.3 Re-export from `shared/src/index.ts` and rebuild `shared/dist`
+  - [x] 1.3 Re-export from `shared/src/index.ts` and rebuild `shared/dist`
     - Add `export type * from './intelligence';` to `shared/src/index.ts`.
     - Run `npm run build:shared` from `haunting-engine/`; confirm `shared/dist/` contains only `.d.ts` files and zero `.js` files (for example `find shared/dist -name '*.js'` returns nothing).
     - Existing code that builds a `ClusterSnapshot` or `Incident` literal (poller, incident tracker `openIncident`, and specs under `engine/`, `incidents/` and `test/`) will not compile until it supplies the new fields. Fix each so the engine compiles: `anomalies: []`, `forecasts: []` and `similar: null` for now. Do not change any decision logic.

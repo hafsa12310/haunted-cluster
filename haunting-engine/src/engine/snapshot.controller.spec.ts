@@ -30,6 +30,8 @@ function snapshot(overrides: Partial<ClusterSnapshot> = {}): ClusterSnapshot {
       },
     ],
     dread: 0.47,
+    anomalies: [],
+    forecasts: [],
     ...overrides,
   };
 }

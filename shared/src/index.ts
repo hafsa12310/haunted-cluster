@@ -7,4 +7,5 @@
 export type * from './chaos';
 export type * from './events';
 export type * from './incident';
+export type * from './intelligence';
 export type * from './service-health';

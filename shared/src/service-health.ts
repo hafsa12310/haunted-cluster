@@ -3,6 +3,7 @@
  *
  * Requirements: 1.1
  */
+import type { AnomalyReading, MemoryForecast } from './intelligence';
 
 /** A service name from SERVICE_CHAIN, e.g. "gateway". */
 export type ServiceName = string;
@@ -41,4 +42,8 @@ export interface ClusterSnapshot {
   services: ServiceHealth[];
   /** Overall horror intensity, 0–1. */
   dread: number;
+  /** Confirmed anomalies only, chain order then latencyP95Ms, errorRatio, rssMb. */
+  anomalies: AnomalyReading[];
+  /** One entry per service that has a trend fit or an active warning, chain order. */
+  forecasts: MemoryForecast[];
 }

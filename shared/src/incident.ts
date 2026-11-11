@@ -4,6 +4,7 @@
  * Requirements: 1.1
  */
 import type { ChaosEvent } from './chaos';
+import type { SimilarIncident } from './intelligence';
 import type { ServiceName, SignalKind } from './service-health';
 
 export interface AffectedService {
@@ -44,4 +45,6 @@ export interface Incident {
   recurrence: IncidentRecurrence | null;
   /** Chaos commands on the root service shortly before opening, newest first. */
   relatedChaos: ChaosEvent[];
+  /** Most similar resolved incident by feature vector; null when none reaches the threshold. */
+  similar: SimilarIncident | null;
 }

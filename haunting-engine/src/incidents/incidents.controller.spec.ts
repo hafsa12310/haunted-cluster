@@ -20,6 +20,8 @@ const SNAPSHOT: ClusterSnapshot = {
   metricsAvailable: true,
   services: [],
   dread: 0,
+  anomalies: [],
+  forecasts: [],
 };
 
 function incident(id: string, rootService: string, resolvedAt: string | null = null): Incident {
@@ -36,6 +38,7 @@ function incident(id: string, rootService: string, resolvedAt: string | null = n
     peak: { latencyP95Ms: 900, errorRatio: null, rssMb: null, minScore: 30 },
     recurrence: null,
     relatedChaos: [],
+    similar: null,
   };
 }
 

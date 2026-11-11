@@ -475,6 +475,7 @@ describe('trackIncidents — property-based tests (Property 8)', () => {
       peak: fc.constant({ latencyP95Ms: null, errorRatio: null, rssMb: null, minScore: null }),
       recurrence: fc.constant(null),
       relatedChaos: fc.constant([]),
+      similar: fc.constant(null),
     });
 
     fc.assert(
