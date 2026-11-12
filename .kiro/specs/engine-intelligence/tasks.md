@@ -27,20 +27,20 @@ Tasks 1 and 3 to 6 cover shared types, configuration and the pure functions, and
     - Write a throwaway file in `haunting-engine/src/` that imports every new type from `@haunted-cluster/shared`, run `tsc --noEmit`, then delete it.
     - _Requirements: R10.6, R10.7_
 
-- [ ] 2. Fix the victim-app memory leak and verify RSS growth
-  - [ ] 2.1 Allocate real memory per leak unit in `libs/chaos/src/chaos.service.ts`
+- [x] 2. Fix the victim-app memory leak and verify RSS growth
+  - [x] 2.1 Allocate real memory per leak unit in `libs/chaos/src/chaos.service.ts`
     - In `enableMemoryLeak()` push `Buffer.alloc(ONE_MB_BYTES, 1)` with `ONE_MB_BYTES = 1024 * 1024` instead of the string. The array stays `unknown[]`, so length, `reset()`, TTL expiry and `getState()` are unchanged. The code default for `LEAK_MB_PER_SECOND` stays `'5'`.
     - _Requirements: R15.8, R15.9, R15.10_
 
-  - [ ] 2.2 Extend `libs/chaos/src/chaos.service.spec.ts`
+  - [x] 2.2 Extend `libs/chaos/src/chaos.service.spec.ts`
     - Each leak entry is a `Buffer` of `1_048_576` bytes. A test with real timers enables the leak for about 3 ticks and asserts `process.memoryUsage().rss` grew by at least half of the nominal amount. Existing length-based tests keep passing. Reset the leak in `afterEach`.
     - _Requirements: R15.8, R15.10_
 
-  - [ ] 2.3 Set the leak rate in `docker-compose.yml`
+  - [x] 2.3 Set the leak rate in `docker-compose.yml`
     - For each of `gateway`, `orders` and `payments` replace `LEAK_MB_PER_SECOND: 5` with `LEAK_MB_PER_SECOND: ${LEAK_MB_PER_SECOND:-2}`. Change nothing else in the file here.
     - _Requirements: R15.1_
 
-  - [ ] 2.4 Manual check of RSS growth on the running stack
+  - [x] 2.4 Manual check of RSS growth on the running stack
     - Rebuild and start the stack with `docker compose up --build -d`, and wait until every container is healthy.
     - Enable the payments leak through the engine's chaos proxy only: `POST /api/chaos/payments/memory-leak` on the haunting-engine with body `{ "enabled": true }` (route from `haunting-engine/src/chaos-proxy/chaos-proxy.controller.ts`). Never call the victim-app `/chaos/*` endpoints directly.
     - For about 20 seconds sample payments RSS about every 2 seconds, from `GET /api/snapshot` on the engine or from Prometheus (`process_rss_bytes` for payments). Confirm RSS rises at roughly 2 MB/s (fit the slope over the samples).
@@ -49,8 +49,8 @@ Tasks 1 and 3 to 6 cover shared types, configuration and the pure functions, and
     - If the observed rate is far from 2 MB/s, stop and ask the user before continuing.
     - _Requirements: R15.1, R15.8, R15.10_
 
-- [ ] 3. Extend engine configuration
-  - [ ] 3.1 Add the config slices and variables in `haunting-engine/src/config/engine-config.ts`
+- [x] 3. Extend engine configuration
+  - [x] 3.1 Add the config slices and variables in `haunting-engine/src/config/engine-config.ts`
     - Export `AnomalyConfig`, `ForecastConfig` and `SimilarityConfig` as in design.md "Configuration slices", and add `memoryLimitMb`, `anomaly`, `forecast` and `similarity` to `EngineConfig`. `MonitoredSignal` is imported from `@haunted-cluster/shared`.
     - Read every variable in `loadEngineConfig` only, with these defaults: `ANOMALY_ALPHA` 0.1, `ANOMALY_Z_THRESHOLD` 3, `ANOMALY_WARMUP_POLLS` 30, `ANOMALY_CONFIRM_POLLS` 2, `ANOMALY_RELEARN_POLLS` 30, `ANOMALY_MIN_STDDEV_LATENCY_MS` 5, `ANOMALY_MIN_STDDEV_ERROR_RATIO` 0.005, `ANOMALY_MIN_STDDEV_RSS_MB` 2, `MEMORY_LIMIT_MB` 256, `FORECAST_WINDOW_POLLS` 15, `FORECAST_MIN_SAMPLES` 5, `FORECAST_MIN_R2` 0.8, `FORECAST_MIN_SLOPE_MB_PER_S` 0.05, `FORECAST_WARN_SECONDS` 60, `FORECAST_RESTART_DROP_MB` 20, `SIMILARITY_THRESHOLD` 0.85, `SIMILARITY_DURATION_CAP_SECONDS` 300. Unset or blank uses the default.
     - Per-variable validation: `ANOMALY_ALPHA` finite in (0, 1]; `FORECAST_MIN_R2` and `SIMILARITY_THRESHOLD` finite in [0, 1]; the six count variables (`ANOMALY_WARMUP_POLLS`, `ANOMALY_CONFIRM_POLLS`, `ANOMALY_RELEARN_POLLS`, `FORECAST_WINDOW_POLLS`, `FORECAST_MIN_SAMPLES`, `SIMILARITY_DURATION_CAP_SECONDS`) positive integers; `ANOMALY_Z_THRESHOLD`, the three `ANOMALY_MIN_STDDEV_*`, `MEMORY_LIMIT_MB`, `FORECAST_MIN_SLOPE_MB_PER_S`, `FORECAST_WARN_SECONDS`, `FORECAST_RESTART_DROP_MB` finite and > 0.
@@ -58,7 +58,7 @@ Tasks 1 and 3 to 6 cover shared types, configuration and the pure functions, and
     - Use a collecting reader (`readIssues`) that pushes `{ variable, message }` instead of throwing. If any issue exists, throw one `ConfigError` whose `message` joins every issue, whose `variable` is the first offender (existing callers keep working) and which gains `readonly variables: string[]` naming every offender. Existing parsing runs first, so a failure in an old variable still throws as before.
     - _Requirements: R11.1, R11.2, R11.3, R11.4, R11.5, R11.6, R11.7, R11.8, R11.9, R11.10, R11.13, R11.14_
 
-  - [ ] 3.2 Write unit tests in `haunting-engine/src/config/engine-config.spec.ts`
+  - [x] 3.2 Write unit tests in `haunting-engine/src/config/engine-config.spec.ts`
     - Defaults: with only the previously required variables set, every new key equals its default (one assertion per variable, including the three `minStdDev` entries).
     - Overrides: a valid value for each variable is used instead of the default.
     - Rejections, one test each, asserting the error names the variable: `ANOMALY_ALPHA` of 0, 1.5, `abc`; `FORECAST_MIN_R2` and `SIMILARITY_THRESHOLD` of -0.1 and 1.1; each count variable of 0, 2.5, `-1`; each > 0 variable of 0, -1, `NaN`, `Infinity`.
@@ -67,7 +67,7 @@ Tasks 1 and 3 to 6 cover shared types, configuration and the pure functions, and
     - Existing config tests still pass unchanged.
     - _Requirements: R11.1, R11.2, R11.3, R11.4, R11.5, R11.6, R11.7, R11.8, R11.9, R11.10_
 
-  - [ ] 3.3 Update `haunting-engine/.env.example`
+  - [x] 3.3 Update `haunting-engine/.env.example`
     - Add the block from design.md "Configuration variables" with a one-line description above each variable, plus `INTEGRATION_LEAK_TIMEOUT_SECONDS=300` and `INTEGRATION_MIN_LEAD_SECONDS=10` marked as test-only.
     - Pass the 17 engine variables through the `haunting-engine` service in the root `docker-compose.yml` as `${NAME:-default}` with the same defaults. Do not pass the two `INTEGRATION_*` variables.
     - _Requirements: R11.11, R11.12_

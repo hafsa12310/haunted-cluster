@@ -30,8 +30,11 @@ export interface ChaosStateResponse {
   memoryLeakExpiresAt: string | null;
 }
 
-/** 1 MB as a string length — each JS char is 2 bytes so 512 k chars ≈ 1 MB. */
-const ONE_MB_STRING_LENGTH = 512 * 1024;
+/**
+ * 1 MB in bytes. The leak pushes real Buffers: V8 ropes made repeated strings
+ * not grow RSS, whereas a filled Buffer is backed by committed memory.
+ */
+const ONE_MB_BYTES = 1024 * 1024;
 
 function buildInitialState(): ChaosState {
   return {
@@ -163,8 +166,8 @@ export class ChaosService implements OnModuleDestroy {
     // Push LEAK_MB_PER_SECOND × 1 MB of strings every 1 000 ms.
     this.state._leakTimer = setInterval(() => {
       for (let i = 0; i < this.leakMbPerSecond; i++) {
-        // A string of ONE_MB_STRING_LENGTH chars ≈ 1 MB of heap.
-        this.state._leakArray.push('x'.repeat(ONE_MB_STRING_LENGTH));
+        // Filled 1 MB Buffer so the memory is actually committed (RSS grows).
+        this.state._leakArray.push(Buffer.alloc(ONE_MB_BYTES, 1));
       }
       this.state.memoryLeakRetainedMb += this.leakMbPerSecond;
     }, 1000);

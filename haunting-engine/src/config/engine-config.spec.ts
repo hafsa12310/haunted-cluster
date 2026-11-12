@@ -47,6 +47,24 @@ describe('loadEngineConfig', () => {
         chaosEvidenceWindowSeconds: 150,
         chaosProxyTimeoutMs: 3000,
         corsOrigin: 'http://localhost:3100',
+        memoryLimitMb: 256,
+        anomaly: {
+          alpha: 0.1,
+          zThreshold: 3,
+          warmupPolls: 30,
+          confirmPolls: 2,
+          relearnPolls: 30,
+          minStdDev: { latencyP95Ms: 5, errorRatio: 0.005, rssMb: 2 },
+        },
+        forecast: {
+          windowPolls: 15,
+          minSamples: 5,
+          minR2: 0.8,
+          minSlopeMbPerS: 0.05,
+          warnSeconds: 60,
+          restartDropMb: 20,
+        },
+        similarity: { threshold: 0.85, durationCapSeconds: 300 },
       });
     });
 
@@ -227,5 +245,170 @@ describe('serviceUrlVariable', () => {
     ['a-b-c', 'A_B_C_URL'],
   ])('maps %s to %s', (service, variable) => {
     expect(serviceUrlVariable(service)).toBe(variable);
+  });
+});
+
+describe('loadEngineConfig: engine-intelligence variables (Requirements 11.1-11.10)', () => {
+  describe('defaults', () => {
+    const config = load();
+
+    it.each<[string, () => number, number]>([
+      ['ANOMALY_ALPHA', () => config.anomaly.alpha, 0.1],
+      ['ANOMALY_Z_THRESHOLD', () => config.anomaly.zThreshold, 3],
+      ['ANOMALY_WARMUP_POLLS', () => config.anomaly.warmupPolls, 30],
+      ['ANOMALY_CONFIRM_POLLS', () => config.anomaly.confirmPolls, 2],
+      ['ANOMALY_RELEARN_POLLS', () => config.anomaly.relearnPolls, 30],
+      ['ANOMALY_MIN_STDDEV_LATENCY_MS', () => config.anomaly.minStdDev.latencyP95Ms, 5],
+      ['ANOMALY_MIN_STDDEV_ERROR_RATIO', () => config.anomaly.minStdDev.errorRatio, 0.005],
+      ['ANOMALY_MIN_STDDEV_RSS_MB', () => config.anomaly.minStdDev.rssMb, 2],
+      ['MEMORY_LIMIT_MB', () => config.memoryLimitMb, 256],
+      ['FORECAST_WINDOW_POLLS', () => config.forecast.windowPolls, 15],
+      ['FORECAST_MIN_SAMPLES', () => config.forecast.minSamples, 5],
+      ['FORECAST_MIN_R2', () => config.forecast.minR2, 0.8],
+      ['FORECAST_MIN_SLOPE_MB_PER_S', () => config.forecast.minSlopeMbPerS, 0.05],
+      ['FORECAST_WARN_SECONDS', () => config.forecast.warnSeconds, 60],
+      ['FORECAST_RESTART_DROP_MB', () => config.forecast.restartDropMb, 20],
+      ['SIMILARITY_THRESHOLD', () => config.similarity.threshold, 0.85],
+      ['SIMILARITY_DURATION_CAP_SECONDS', () => config.similarity.durationCapSeconds, 300],
+    ])('defaults %s', (_name, actual, expected) => {
+      expect(actual()).toBe(expected);
+    });
+
+    it('treats a blank value as unset', () => {
+      expect(load({ ANOMALY_ALPHA: '  ', FORECAST_MIN_R2: '' }).anomaly.alpha).toBe(0.1);
+      expect(load({ FORECAST_MIN_R2: '' }).forecast.minR2).toBe(0.8);
+    });
+  });
+
+  describe('overrides', () => {
+    it.each<[string, string, (c: EngineConfig) => number, number]>([
+      ['ANOMALY_ALPHA', '0.5', (c) => c.anomaly.alpha, 0.5],
+      ['ANOMALY_Z_THRESHOLD', '4.5', (c) => c.anomaly.zThreshold, 4.5],
+      ['ANOMALY_WARMUP_POLLS', '10', (c) => c.anomaly.warmupPolls, 10],
+      ['ANOMALY_CONFIRM_POLLS', '3', (c) => c.anomaly.confirmPolls, 3],
+      ['ANOMALY_RELEARN_POLLS', '40', (c) => c.anomaly.relearnPolls, 40],
+      ['ANOMALY_MIN_STDDEV_LATENCY_MS', '7', (c) => c.anomaly.minStdDev.latencyP95Ms, 7],
+      ['ANOMALY_MIN_STDDEV_ERROR_RATIO', '0.01', (c) => c.anomaly.minStdDev.errorRatio, 0.01],
+      ['ANOMALY_MIN_STDDEV_RSS_MB', '3', (c) => c.anomaly.minStdDev.rssMb, 3],
+      ['MEMORY_LIMIT_MB', '512', (c) => c.memoryLimitMb, 512],
+      ['FORECAST_WINDOW_POLLS', '20', (c) => c.forecast.windowPolls, 20],
+      ['FORECAST_MIN_SAMPLES', '4', (c) => c.forecast.minSamples, 4],
+      ['FORECAST_MIN_R2', '0.9', (c) => c.forecast.minR2, 0.9],
+      ['FORECAST_MIN_SLOPE_MB_PER_S', '0.1', (c) => c.forecast.minSlopeMbPerS, 0.1],
+      ['FORECAST_WARN_SECONDS', '90', (c) => c.forecast.warnSeconds, 90],
+      ['FORECAST_RESTART_DROP_MB', '30', (c) => c.forecast.restartDropMb, 30],
+      ['SIMILARITY_THRESHOLD', '0.7', (c) => c.similarity.threshold, 0.7],
+      ['SIMILARITY_DURATION_CAP_SECONDS', '600', (c) => c.similarity.durationCapSeconds, 600],
+    ])('uses a valid %s=%s instead of the default', (name, value, pick, expected) => {
+      expect(pick(load({ [name]: value }))).toBe(expected);
+    });
+
+    it('accepts the interval endpoints', () => {
+      expect(load({ ANOMALY_ALPHA: '1' }).anomaly.alpha).toBe(1);
+      expect(load({ FORECAST_MIN_R2: '0' }).forecast.minR2).toBe(0);
+      expect(load({ FORECAST_MIN_R2: '1' }).forecast.minR2).toBe(1);
+      expect(load({ SIMILARITY_THRESHOLD: '0' }).similarity.threshold).toBe(0);
+      expect(load({ SIMILARITY_THRESHOLD: '1' }).similarity.threshold).toBe(1);
+    });
+  });
+
+  describe('rejections', () => {
+    it.each(['0', '1.5', 'abc'])('rejects ANOMALY_ALPHA=%s', (value) => {
+      const error = configError(() => load({ ANOMALY_ALPHA: value }));
+      expect(error.variable).toBe('ANOMALY_ALPHA');
+      expect(error.variables).toEqual(['ANOMALY_ALPHA']);
+      expect(error.message).toContain('ANOMALY_ALPHA');
+    });
+
+    it.each(['FORECAST_MIN_R2', 'SIMILARITY_THRESHOLD'])('rejects %s outside [0, 1]', (name) => {
+      for (const value of ['-0.1', '1.1']) {
+        const error = configError(() => load({ [name]: value }));
+        expect(error.variable).toBe(name);
+        expect(error.message).toContain(name);
+      }
+    });
+
+    const countVariables = [
+      'ANOMALY_WARMUP_POLLS',
+      'ANOMALY_CONFIRM_POLLS',
+      'ANOMALY_RELEARN_POLLS',
+      'FORECAST_WINDOW_POLLS',
+      'FORECAST_MIN_SAMPLES',
+      'SIMILARITY_DURATION_CAP_SECONDS',
+    ];
+    it.each(countVariables)('rejects %s of 0, 2.5 and -1', (name) => {
+      for (const value of ['0', '2.5', '-1']) {
+        const error = configError(() => load({ [name]: value }));
+        expect(error.variable).toBe(name);
+        expect(error.message).toContain(name);
+      }
+    });
+
+    const positiveVariables = [
+      'ANOMALY_Z_THRESHOLD',
+      'ANOMALY_MIN_STDDEV_LATENCY_MS',
+      'ANOMALY_MIN_STDDEV_ERROR_RATIO',
+      'ANOMALY_MIN_STDDEV_RSS_MB',
+      'MEMORY_LIMIT_MB',
+      'FORECAST_MIN_SLOPE_MB_PER_S',
+      'FORECAST_WARN_SECONDS',
+      'FORECAST_RESTART_DROP_MB',
+    ];
+    it.each(positiveVariables)('rejects %s of 0, -1, NaN and Infinity', (name) => {
+      for (const value of ['0', '-1', 'NaN', 'Infinity']) {
+        const error = configError(() => load({ [name]: value }));
+        expect(error.variable).toBe(name);
+        expect(error.message).toContain(name);
+      }
+    });
+  });
+
+  describe('cross rules', () => {
+    it('rejects FORECAST_MIN_SAMPLES above FORECAST_WINDOW_POLLS', () => {
+      const error = configError(() => load({ FORECAST_MIN_SAMPLES: '10', FORECAST_WINDOW_POLLS: '5' }));
+      expect(error.variable).toBe('FORECAST_MIN_SAMPLES');
+      expect(error.message).toContain('FORECAST_WINDOW_POLLS');
+    });
+
+    it('accepts FORECAST_MIN_SAMPLES equal to FORECAST_WINDOW_POLLS', () => {
+      const config = load({ FORECAST_MIN_SAMPLES: '5', FORECAST_WINDOW_POLLS: '5' });
+      expect(config.forecast.minSamples).toBe(5);
+      expect(config.forecast.windowPolls).toBe(5);
+    });
+
+    it.each(['230', '200'])('rejects MEMORY_LIMIT_MB=%s at or below MEMORY_CRITICAL_MB (230)', (value) => {
+      const error = configError(() => load({ MEMORY_LIMIT_MB: value, MEMORY_CRITICAL_MB: '230' }));
+      expect(error.variable).toBe('MEMORY_LIMIT_MB');
+      expect(error.message).toContain('MEMORY_CRITICAL_MB');
+    });
+
+    it('rejects ANOMALY_RELEARN_POLLS below ANOMALY_CONFIRM_POLLS', () => {
+      const error = configError(() => load({ ANOMALY_RELEARN_POLLS: '1', ANOMALY_CONFIRM_POLLS: '2' }));
+      expect(error.variable).toBe('ANOMALY_RELEARN_POLLS');
+      expect(error.message).toContain('ANOMALY_CONFIRM_POLLS');
+    });
+
+    it('accepts ANOMALY_RELEARN_POLLS equal to ANOMALY_CONFIRM_POLLS', () => {
+      const config = load({ ANOMALY_RELEARN_POLLS: '2', ANOMALY_CONFIRM_POLLS: '2' });
+      expect(config.anomaly.relearnPolls).toBe(2);
+      expect(config.anomaly.confirmPolls).toBe(2);
+    });
+  });
+
+  describe('multiple offenders', () => {
+    it('reports every invalid variable, with the first offender as `variable`', () => {
+      const error = configError(() =>
+        load({
+          ANOMALY_ALPHA: '0',
+          FORECAST_WARN_SECONDS: '-1',
+          SIMILARITY_DURATION_CAP_SECONDS: '2.5',
+        }),
+      );
+      const names = ['ANOMALY_ALPHA', 'FORECAST_WARN_SECONDS', 'SIMILARITY_DURATION_CAP_SECONDS'];
+      expect(error.variable).toBe('ANOMALY_ALPHA');
+      expect(error.variables).toEqual(expect.arrayContaining(names));
+      expect(error.variables).toHaveLength(3);
+      for (const name of names) expect(error.message).toContain(name);
+    });
   });
 });

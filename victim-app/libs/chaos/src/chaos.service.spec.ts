@@ -200,6 +200,46 @@ describe('ChaosService unit tests', () => {
     });
   });
 
+  // ── Real memory growth ────────────────────────────────────────────────────
+
+  describe('enableMemoryLeak() real memory growth', () => {
+    const ONE_MB_BYTES = 1_048_576;
+    const LEAK_MB_PER_SECOND = 10;
+    const TICKS = 3;
+    let leakService: ChaosService;
+
+    beforeEach(() => {
+      // Real timers: RSS growth only happens when the interval really fires.
+      jest.useRealTimers();
+      leakService = makeServiceLongTtl(LEAK_MB_PER_SECOND);
+    });
+
+    afterEach(() => {
+      // Free the retained Buffers and clear every timer.
+      leakService.reset();
+      leakService.onModuleDestroy();
+    });
+
+    it('pushes 1 MiB Buffers and grows RSS by at least half the nominal amount (Requirements: 15.8, 15.10)', async () => {
+      const rssBefore = process.memoryUsage().rss;
+
+      leakService.enableMemoryLeak();
+      // Wait for about 3 ticks (1 s each), with margin so the 3rd tick has run.
+      await new Promise<void>((resolve) => setTimeout(resolve, TICKS * 1000 + 300));
+
+      const entries = leakService.state._leakArray;
+      expect(entries.length).toBeGreaterThanOrEqual(TICKS * LEAK_MB_PER_SECOND);
+      for (const entry of entries) {
+        expect(Buffer.isBuffer(entry)).toBe(true);
+        expect((entry as Buffer).length).toBe(ONE_MB_BYTES);
+      }
+
+      const nominalBytes = entries.length * ONE_MB_BYTES;
+      const rssGrowth = process.memoryUsage().rss - rssBefore;
+      expect(rssGrowth).toBeGreaterThanOrEqual(nominalBytes / 2);
+    }, 15_000);
+  });
+
   // ── 8. disableMemoryLeak ──────────────────────────────────────────────────
 
   describe('disableMemoryLeak()', () => {

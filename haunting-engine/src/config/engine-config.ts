@@ -8,9 +8,34 @@
  * Requirements: 7.7, 13.1, 13.2, 13.3
  */
 
+import type { MonitoredSignal } from '@haunted-cluster/shared';
+
 export interface Thresholds {
   ok: number;
   critical: number;
+}
+
+export interface AnomalyConfig {
+  alpha: number; // ANOMALY_ALPHA, (0, 1]
+  zThreshold: number; // ANOMALY_Z_THRESHOLD, > 0
+  warmupPolls: number; // ANOMALY_WARMUP_POLLS, integer >= 1
+  confirmPolls: number; // ANOMALY_CONFIRM_POLLS, integer >= 1
+  relearnPolls: number; // ANOMALY_RELEARN_POLLS, integer >= confirmPolls
+  minStdDev: Record<MonitoredSignal, number>; // ANOMALY_MIN_STDDEV_*, > 0
+}
+
+export interface ForecastConfig {
+  windowPolls: number; // FORECAST_WINDOW_POLLS
+  minSamples: number; // FORECAST_MIN_SAMPLES, <= windowPolls
+  minR2: number; // FORECAST_MIN_R2, [0, 1]
+  minSlopeMbPerS: number; // FORECAST_MIN_SLOPE_MB_PER_S, > 0
+  warnSeconds: number; // FORECAST_WARN_SECONDS, > 0
+  restartDropMb: number; // FORECAST_RESTART_DROP_MB, > 0
+}
+
+export interface SimilarityConfig {
+  threshold: number; // SIMILARITY_THRESHOLD, [0, 1]
+  durationCapSeconds: number; // SIMILARITY_DURATION_CAP_SECONDS, integer >= 1
 }
 
 export interface EngineConfig {
@@ -33,17 +58,82 @@ export interface EngineConfig {
   chaosEvidenceWindowSeconds: number;
   chaosProxyTimeoutMs: number;
   corsOrigin: string;
+  memoryLimitMb: number;
+  anomaly: AnomalyConfig;
+  forecast: ForecastConfig;
+  similarity: SimilarityConfig;
 }
 
-/** Thrown when a variable is missing or invalid; `variable` names it. */
+/**
+ * Thrown when a variable is missing or invalid; `variable` names the first
+ * offender and `variables` lists every one.
+ */
 export class ConfigError extends Error {
+  readonly variables: string[];
+
   constructor(
     readonly variable: string,
     message: string,
+    variables: string[] = [variable],
   ) {
     super(message);
     this.name = 'ConfigError';
+    this.variables = variables;
   }
+}
+
+interface ConfigIssue {
+  variable: string;
+  message: string;
+}
+
+/** Reads variables and records problems instead of throwing. */
+interface IssueReader {
+  issues: ConfigIssue[];
+  /** Finite number in an interval; returns undefined (and records an issue) if invalid. */
+  number(name: string, fallback: number, rule: 'positive' | 'alpha' | 'unit'): number | undefined;
+  /** Positive integer; returns undefined (and records an issue) if invalid. */
+  count(name: string, fallback: number): number | undefined;
+}
+
+export function readIssues(env: NodeJS.ProcessEnv): IssueReader {
+  const issues: ConfigIssue[] = [];
+  const fail = (variable: string, message: string): undefined => {
+    issues.push({ variable, message });
+    return undefined;
+  };
+  const parse = (name: string, fallback: number): number | undefined => {
+    const raw = read(env, name);
+    if (raw === undefined) return fallback;
+    const value = Number(raw);
+    if (!Number.isFinite(value)) return fail(name, `${name} must be a number, got "${raw}"`);
+    return value;
+  };
+  return {
+    issues,
+    number(name, fallback, rule) {
+      const value = parse(name, fallback);
+      if (value === undefined) return undefined;
+      if (rule === 'positive' && !(value > 0)) {
+        return fail(name, `${name} must be greater than 0, got "${value}"`);
+      }
+      if (rule === 'alpha' && !(value > 0 && value <= 1)) {
+        return fail(name, `${name} must be in (0, 1], got "${value}"`);
+      }
+      if (rule === 'unit' && !(value >= 0 && value <= 1)) {
+        return fail(name, `${name} must be in [0, 1], got "${value}"`);
+      }
+      return value;
+    },
+    count(name, fallback) {
+      const value = parse(name, fallback);
+      if (value === undefined) return undefined;
+      if (!Number.isInteger(value) || value <= 0) {
+        return fail(name, `${name} must be a positive integer, got "${value}"`);
+      }
+      return value;
+    },
+  };
 }
 
 const RATE_WINDOW_PATTERN = /^\d+[smh]$/;
@@ -138,7 +228,7 @@ export function loadEngineConfig(env: NodeJS.ProcessEnv): EngineConfig {
     );
   }
 
-  return {
+  const base = {
     port: positiveInteger(env, 'PORT', 4000),
     prometheusUrl,
     serviceChain: chain,
@@ -155,5 +245,80 @@ export function loadEngineConfig(env: NodeJS.ProcessEnv): EngineConfig {
     chaosEvidenceWindowSeconds: positiveInteger(env, 'CHAOS_EVIDENCE_WINDOW_SECONDS', 150),
     chaosProxyTimeoutMs: positiveInteger(env, 'CHAOS_PROXY_TIMEOUT_MS', 3000),
     corsOrigin: read(env, 'CORS_ORIGIN') ?? 'http://localhost:3100',
+  };
+
+  // Intelligence variables: collect every problem, then throw once.
+  const r = readIssues(env);
+  const alpha = r.number('ANOMALY_ALPHA', 0.1, 'alpha');
+  const zThreshold = r.number('ANOMALY_Z_THRESHOLD', 3, 'positive');
+  const warmupPolls = r.count('ANOMALY_WARMUP_POLLS', 30);
+  const confirmPolls = r.count('ANOMALY_CONFIRM_POLLS', 2);
+  const relearnPolls = r.count('ANOMALY_RELEARN_POLLS', 30);
+  const stdLatency = r.number('ANOMALY_MIN_STDDEV_LATENCY_MS', 5, 'positive');
+  const stdError = r.number('ANOMALY_MIN_STDDEV_ERROR_RATIO', 0.005, 'positive');
+  const stdRss = r.number('ANOMALY_MIN_STDDEV_RSS_MB', 2, 'positive');
+  const memoryLimitMb = r.number('MEMORY_LIMIT_MB', 256, 'positive');
+  const windowPolls = r.count('FORECAST_WINDOW_POLLS', 15);
+  const minSamples = r.count('FORECAST_MIN_SAMPLES', 5);
+  const minR2 = r.number('FORECAST_MIN_R2', 0.8, 'unit');
+  const minSlopeMbPerS = r.number('FORECAST_MIN_SLOPE_MB_PER_S', 0.05, 'positive');
+  const warnSeconds = r.number('FORECAST_WARN_SECONDS', 60, 'positive');
+  const restartDropMb = r.number('FORECAST_RESTART_DROP_MB', 20, 'positive');
+  const threshold = r.number('SIMILARITY_THRESHOLD', 0.85, 'unit');
+  const durationCapSeconds = r.count('SIMILARITY_DURATION_CAP_SECONDS', 300);
+
+  // Cross rules apply only when both sides parsed.
+  if (minSamples !== undefined && windowPolls !== undefined && minSamples > windowPolls) {
+    r.issues.push({
+      variable: 'FORECAST_MIN_SAMPLES',
+      message: `FORECAST_MIN_SAMPLES (${minSamples}) must not exceed FORECAST_WINDOW_POLLS (${windowPolls})`,
+    });
+  }
+  if (memoryLimitMb !== undefined && memoryLimitMb <= base.memoryMb.critical) {
+    r.issues.push({
+      variable: 'MEMORY_LIMIT_MB',
+      message: `MEMORY_LIMIT_MB (${memoryLimitMb}) must be greater than MEMORY_CRITICAL_MB (${base.memoryMb.critical})`,
+    });
+  }
+  if (relearnPolls !== undefined && confirmPolls !== undefined && relearnPolls < confirmPolls) {
+    r.issues.push({
+      variable: 'ANOMALY_RELEARN_POLLS',
+      message: `ANOMALY_RELEARN_POLLS (${relearnPolls}) must be at least ANOMALY_CONFIRM_POLLS (${confirmPolls})`,
+    });
+  }
+
+  if (r.issues.length > 0) {
+    throw new ConfigError(
+      r.issues[0].variable,
+      r.issues.map((i) => i.message).join('; '),
+      r.issues.map((i) => i.variable),
+    );
+  }
+
+  // No issues, so every value above is defined; the checks narrow the types.
+  if (
+    alpha === undefined || zThreshold === undefined || warmupPolls === undefined ||
+    confirmPolls === undefined || relearnPolls === undefined || stdLatency === undefined ||
+    stdError === undefined || stdRss === undefined || memoryLimitMb === undefined ||
+    windowPolls === undefined || minSamples === undefined || minR2 === undefined ||
+    minSlopeMbPerS === undefined || warnSeconds === undefined || restartDropMb === undefined ||
+    threshold === undefined || durationCapSeconds === undefined
+  ) {
+    throw new ConfigError('ENGINE_CONFIG', 'internal error: intelligence config incomplete');
+  }
+
+  return {
+    ...base,
+    memoryLimitMb,
+    anomaly: {
+      alpha,
+      zThreshold,
+      warmupPolls,
+      confirmPolls,
+      relearnPolls,
+      minStdDev: { latencyP95Ms: stdLatency, errorRatio: stdError, rssMb: stdRss },
+    },
+    forecast: { windowPolls, minSamples, minR2, minSlopeMbPerS, warnSeconds, restartDropMb },
+    similarity: { threshold, durationCapSeconds },
   };
 }

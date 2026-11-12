@@ -43,6 +43,104 @@
         "chatSessionId": "sess_001b08ec-073a-4c11-97aa-b77e283704fb",
         "timestamp": 1794400445087
       }
+    ],
+    "2.1 Allocate real memory per leak unit in `libs/chaos/src/chaos.service.ts`": [
+      {
+        "executionId": "d760ecac-cd8b-41ea-a244-f1252262b165",
+        "chatSessionId": "sess_378028c0-89e3-4a9f-929e-54f1d267213c",
+        "timestamp": 1794401136788
+      },
+      {
+        "executionId": "d760ecac-cd8b-41ea-a244-f1252262b165",
+        "chatSessionId": "sess_378028c0-89e3-4a9f-929e-54f1d267213c",
+        "timestamp": 1794401167535
+      }
+    ],
+    "2.2 Extend `libs/chaos/src/chaos.service.spec.ts`": [
+      {
+        "executionId": "d5effdfc-f393-4153-9133-baef3ef34f24",
+        "chatSessionId": "sess_6e1045f5-ba2b-45d7-b8f4-4148456458ac",
+        "timestamp": 1794401250749
+      },
+      {
+        "executionId": "d5effdfc-f393-4153-9133-baef3ef34f24",
+        "chatSessionId": "sess_6e1045f5-ba2b-45d7-b8f4-4148456458ac",
+        "timestamp": 1794401295121
+      }
+    ],
+    "2.3 Set the leak rate in `docker-compose.yml`": [
+      {
+        "executionId": "d2b77d20-5d82-43e6-a844-d678a3096176",
+        "chatSessionId": "sess_659fb035-610c-4b8f-ba89-3865ea9a89e6",
+        "timestamp": 1794401320985
+      },
+      {
+        "executionId": "d2b77d20-5d82-43e6-a844-d678a3096176",
+        "chatSessionId": "sess_659fb035-610c-4b8f-ba89-3865ea9a89e6",
+        "timestamp": 1794401982470
+      }
+    ],
+    "2.4 Manual check of RSS growth on the running stack": [
+      {
+        "executionId": "8471b0f0-4510-443f-a89e-4a635709fd73",
+        "chatSessionId": "sess_2791d625-8683-41d4-89ae-d2cde01be59c",
+        "timestamp": 1794402008642
+      },
+      {
+        "executionId": "8471b0f0-4510-443f-a89e-4a635709fd73",
+        "chatSessionId": "sess_2791d625-8683-41d4-89ae-d2cde01be59c",
+        "timestamp": 1794402164802
+      }
+    ],
+    "2. Fix the victim-app memory leak and verify RSS growth": [
+      {
+        "executionId": "8471b0f0-4510-443f-a89e-4a635709fd73",
+        "chatSessionId": "sess_2791d625-8683-41d4-89ae-d2cde01be59c",
+        "timestamp": 1794402164836
+      }
+    ],
+    "3.1 Add the config slices and variables in `haunting-engine/src/config/engine-config.ts`": [
+      {
+        "executionId": "b2d31f3f-1b6b-4643-b6ab-cac651d7a5d4",
+        "chatSessionId": "sess_ada61c5a-5cf3-4ede-8f24-072c00cac3a1",
+        "timestamp": 1794402217254
+      },
+      {
+        "executionId": "b2d31f3f-1b6b-4643-b6ab-cac651d7a5d4",
+        "chatSessionId": "sess_ada61c5a-5cf3-4ede-8f24-072c00cac3a1",
+        "timestamp": 1794402290950
+      }
+    ],
+    "3.2 Write unit tests in `haunting-engine/src/config/engine-config.spec.ts`": [
+      {
+        "executionId": "c361b2ac-50ff-431b-9dce-a17b874b9393",
+        "chatSessionId": "sess_3fbc8ff4-6eaa-4634-b225-f95a82e78db8",
+        "timestamp": 1794418573466
+      },
+      {
+        "executionId": "c361b2ac-50ff-431b-9dce-a17b874b9393",
+        "chatSessionId": "sess_3fbc8ff4-6eaa-4634-b225-f95a82e78db8",
+        "timestamp": 1794418626445
+      }
+    ],
+    "3.3 Update `haunting-engine/.env.example`": [
+      {
+        "executionId": "921490e8-15ee-4a3d-aaed-e5498fb5ba64",
+        "chatSessionId": "sess_3dcf9ed3-7aa2-4a01-b34c-cba7b001d6a2",
+        "timestamp": 1794418879533
+      },
+      {
+        "executionId": "921490e8-15ee-4a3d-aaed-e5498fb5ba64",
+        "chatSessionId": "sess_3dcf9ed3-7aa2-4a01-b34c-cba7b001d6a2",
+        "timestamp": 1794418919467
+      }
+    ],
+    "3. Extend engine configuration": [
+      {
+        "executionId": "921490e8-15ee-4a3d-aaed-e5498fb5ba64",
+        "chatSessionId": "sess_3dcf9ed3-7aa2-4a01-b34c-cba7b001d6a2",
+        "timestamp": 1794418919499
+      }
     ]
   }
 }

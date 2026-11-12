@@ -12,7 +12,7 @@ services:
       ORDERS_URL: http://orders:3001
       DOWNSTREAM_TIMEOUT_MS: 5000
       CHAOS_TTL_SECONDS: 120
-      LEAK_MB_PER_SECOND: 5
+      LEAK_MB_PER_SECOND: ${LEAK_MB_PER_SECOND:-2}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
       interval: 10s
@@ -32,7 +32,7 @@ services:
       PAYMENTS_URL: http://payments:3002
       DOWNSTREAM_TIMEOUT_MS: 5000
       CHAOS_TTL_SECONDS: 120
-      LEAK_MB_PER_SECOND: 5
+      LEAK_MB_PER_SECOND: ${LEAK_MB_PER_SECOND:-2}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
       interval: 10s
@@ -50,7 +50,7 @@ services:
     environment:
       PORT: 3002
       CHAOS_TTL_SECONDS: 120
-      LEAK_MB_PER_SECOND: 5
+      LEAK_MB_PER_SECOND: ${LEAK_MB_PER_SECOND:-2}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3002/health"]
       interval: 10s
@@ -104,6 +104,23 @@ services:
       PAYMENTS_URL: http://payments:3002
       POLL_INTERVAL_MS: 2000
       CORS_ORIGIN: http://localhost:3100
+      ANOMALY_ALPHA: ${ANOMALY_ALPHA:-0.1}
+      ANOMALY_Z_THRESHOLD: ${ANOMALY_Z_THRESHOLD:-3}
+      ANOMALY_WARMUP_POLLS: ${ANOMALY_WARMUP_POLLS:-30}
+      ANOMALY_CONFIRM_POLLS: ${ANOMALY_CONFIRM_POLLS:-2}
+      ANOMALY_RELEARN_POLLS: ${ANOMALY_RELEARN_POLLS:-30}
+      ANOMALY_MIN_STDDEV_LATENCY_MS: ${ANOMALY_MIN_STDDEV_LATENCY_MS:-5}
+      ANOMALY_MIN_STDDEV_ERROR_RATIO: ${ANOMALY_MIN_STDDEV_ERROR_RATIO:-0.005}
+      ANOMALY_MIN_STDDEV_RSS_MB: ${ANOMALY_MIN_STDDEV_RSS_MB:-2}
+      MEMORY_LIMIT_MB: ${MEMORY_LIMIT_MB:-256}
+      FORECAST_WINDOW_POLLS: ${FORECAST_WINDOW_POLLS:-15}
+      FORECAST_MIN_SAMPLES: ${FORECAST_MIN_SAMPLES:-5}
+      FORECAST_MIN_R2: ${FORECAST_MIN_R2:-0.8}
+      FORECAST_MIN_SLOPE_MB_PER_S: ${FORECAST_MIN_SLOPE_MB_PER_S:-0.05}
+      FORECAST_WARN_SECONDS: ${FORECAST_WARN_SECONDS:-60}
+      FORECAST_RESTART_DROP_MB: ${FORECAST_RESTART_DROP_MB:-20}
+      SIMILARITY_THRESHOLD: ${SIMILARITY_THRESHOLD:-0.85}
+      SIMILARITY_DURATION_CAP_SECONDS: ${SIMILARITY_DURATION_CAP_SECONDS:-300}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:4000/health"]
       interval: 10s
