@@ -1,5 +1,70 @@
 {
-  "pbtResults": {},
+  "pbtResults": {
+    "5.3 Write property tests in `intelligence/anomaly/baseline.prop.spec.ts`": {
+      "status": "passed",
+      "lastRunTimestamp": 1794459662522
+    },
+    "5.7 Write property test in `intelligence/anomaly/anomaly-learning.prop.spec.ts`": {
+      "status": "passed",
+      "lastRunTimestamp": 1794460691165
+    },
+    "5.9 Write property test for confirmation events": {
+      "status": "passed",
+      "lastRunTimestamp": 1794461131839
+    },
+    "5.10 Write property test for unknown, down and unusable observations": {
+      "status": "passed",
+      "lastRunTimestamp": 1794461199126
+    },
+    "5.11 Write property tests for relearning": {
+      "status": "passed",
+      "lastRunTimestamp": 1794461286460
+    },
+    "6.2 Write property tests in `intelligence/forecast/trend-fitter.prop.spec.ts`": {
+      "status": "passed",
+      "lastRunTimestamp": 1794463198640
+    },
+    "6.4 Write property tests in `intelligence/forecast/forecaster.prop.spec.ts`": {
+      "status": "passed",
+      "lastRunTimestamp": 1794463492884
+    },
+    "6.7 Write property tests in `intelligence/similarity/feature-extractor.prop.spec.ts`": {
+      "status": "passed",
+      "lastRunTimestamp": 1794468973304
+    },
+    "6.9 Write property tests in `intelligence/similarity/similarity-matcher.prop.spec.ts`": {
+      "status": "passed",
+      "lastRunTimestamp": 1794469357781
+    },
+    "6.11 Write property tests in `intelligence/similarity/incident-similarity.prop.spec.ts`": {
+      "status": "passed",
+      "lastRunTimestamp": 1794471437271
+    },
+    "7.3 Write property test for the initial state in `intelligence/intelligence-step.prop.spec.ts`": {
+      "status": "passed",
+      "lastRunTimestamp": 1794484135979
+    },
+    "7.4 Write property test for baseline replay equivalence": {
+      "status": "passed",
+      "lastRunTimestamp": 1794484301057
+    },
+    "7.5 Write property test for the pre-Poll open-incident guard": {
+      "status": "passed",
+      "lastRunTimestamp": 1794484432877
+    },
+    "7.6 Write property test for Blind_Polls": {
+      "status": "passed",
+      "lastRunTimestamp": 1794484505664
+    },
+    "7.7 Write property test for the reported anomalies": {
+      "status": "passed",
+      "lastRunTimestamp": 1794484623199
+    },
+    "7.8 Write property test for purity and replay": {
+      "status": "passed",
+      "lastRunTimestamp": 1794484737266
+    }
+  },
   "executionHistory": {
     "1.1 Create `shared/src/intelligence.ts`": [
       {
@@ -140,6 +205,447 @@
         "executionId": "921490e8-15ee-4a3d-aaed-e5498fb5ba64",
         "chatSessionId": "sess_3dcf9ed3-7aa2-4a01-b34c-cba7b001d6a2",
         "timestamp": 1794418919499
+      }
+    ],
+    "4. Checkpoint - Build, boot and test the engine": [
+      {
+        "executionId": "a6caf1f4-405a-439c-ad75-09d9975802f0",
+        "chatSessionId": "sess_aa728c50-e8aa-40bc-b153-0557e643052a",
+        "timestamp": 1794459191891
+      },
+      {
+        "executionId": "a6caf1f4-405a-439c-ad75-09d9975802f0",
+        "chatSessionId": "sess_aa728c50-e8aa-40bc-b153-0557e643052a",
+        "timestamp": 1794459254895
+      }
+    ],
+    "5.1 Create `haunting-engine/src/intelligence/intelligence-types.ts`": [
+      {
+        "executionId": "384a2ca8-1d84-4d56-ab46-fab90a67898a",
+        "chatSessionId": "sess_191a77da-4e02-456a-aed7-0e2c386148db",
+        "timestamp": 1794459480441
+      },
+      {
+        "executionId": "384a2ca8-1d84-4d56-ab46-fab90a67898a",
+        "chatSessionId": "sess_191a77da-4e02-456a-aed7-0e2c386148db",
+        "timestamp": 1794459525594
+      }
+    ],
+    "5.2 Create `intelligence/anomaly/baseline.ts`": [
+      {
+        "executionId": "bd0432f0-bcd8-4b8a-8fa5-c7a49562b063",
+        "chatSessionId": "sess_b0c01a18-35de-4faf-adfa-1b97193de9bd",
+        "timestamp": 1794459541070
+      },
+      {
+        "executionId": "bd0432f0-bcd8-4b8a-8fa5-c7a49562b063",
+        "chatSessionId": "sess_b0c01a18-35de-4faf-adfa-1b97193de9bd",
+        "timestamp": 1794459585424
+      }
+    ],
+    "5.3 Write property tests in `intelligence/anomaly/baseline.prop.spec.ts`": [
+      {
+        "executionId": "7926064e-dd24-4b88-a786-62fb2bf7c343",
+        "chatSessionId": "sess_f8323a4b-ddf1-497d-abf3-62a07f097892",
+        "timestamp": 1794459629254
+      },
+      {
+        "executionId": "7926064e-dd24-4b88-a786-62fb2bf7c343",
+        "chatSessionId": "sess_f8323a4b-ddf1-497d-abf3-62a07f097892",
+        "timestamp": 1794459672015
+      }
+    ],
+    "5.4 Create `intelligence/anomaly/anomaly-detector.ts`": [
+      {
+        "executionId": "8866038b-51d0-48d9-80e6-7df8525627ae",
+        "chatSessionId": "sess_800a8185-aa9b-41b8-974d-9b1284656f6c",
+        "timestamp": 1794460079744
+      },
+      {
+        "executionId": "8866038b-51d0-48d9-80e6-7df8525627ae",
+        "chatSessionId": "sess_800a8185-aa9b-41b8-974d-9b1284656f6c",
+        "timestamp": 1794460122549
+      }
+    ],
+    "5.5 Write property tests in `intelligence/anomaly/anomaly-detector.prop.spec.ts`": [
+      {
+        "executionId": "4eda8ec9-3c21-4d0d-a734-b848fde481b0",
+        "chatSessionId": "sess_1522bef0-c75b-4e69-bd08-bc65d66ece53",
+        "timestamp": 1794460383706
+      },
+      {
+        "executionId": "4eda8ec9-3c21-4d0d-a734-b848fde481b0",
+        "chatSessionId": "sess_1522bef0-c75b-4e69-bd08-bc65d66ece53",
+        "timestamp": 1794460466587
+      }
+    ],
+    "5.6 Create `intelligence/anomaly/anomaly-learning.ts`": [
+      {
+        "executionId": "6d0fc7cb-9390-4994-92e0-10c860fbd9d3",
+        "chatSessionId": "sess_0fed1e32-1073-4d8d-bace-bbf780316d9e",
+        "timestamp": 1794460489003
+      },
+      {
+        "executionId": "6d0fc7cb-9390-4994-92e0-10c860fbd9d3",
+        "chatSessionId": "sess_0fed1e32-1073-4d8d-bace-bbf780316d9e",
+        "timestamp": 1794460556371
+      }
+    ],
+    "5.7 Write property test in `intelligence/anomaly/anomaly-learning.prop.spec.ts`": [
+      {
+        "executionId": "d80ea0dc-bdd1-469f-8b47-f39f3e65ab38",
+        "chatSessionId": "sess_d7dfe003-8339-473d-9568-975c1f5f2998",
+        "timestamp": 1794460634324
+      },
+      {
+        "executionId": "d80ea0dc-bdd1-469f-8b47-f39f3e65ab38",
+        "chatSessionId": "sess_d7dfe003-8339-473d-9568-975c1f5f2998",
+        "timestamp": 1794460699617
+      }
+    ],
+    "5.8 Create `intelligence/anomaly/anomaly-tracker.ts`": [
+      {
+        "executionId": "0513ee21-2f4e-4562-9192-b818909c22bb",
+        "chatSessionId": "sess_e7e2d855-d68f-4e58-85eb-b2b2250fc77d",
+        "timestamp": 1794461013615
+      },
+      {
+        "executionId": "0513ee21-2f4e-4562-9192-b818909c22bb",
+        "chatSessionId": "sess_e7e2d855-d68f-4e58-85eb-b2b2250fc77d",
+        "timestamp": 1794461057094
+      }
+    ],
+    "5.9 Write property test for confirmation events": [
+      {
+        "executionId": "f1aea68e-a89b-4c32-895e-11f345b35df9",
+        "chatSessionId": "sess_68b20033-7165-4c02-9031-f8795b380bfa",
+        "timestamp": 1794461085999
+      },
+      {
+        "executionId": "f1aea68e-a89b-4c32-895e-11f345b35df9",
+        "chatSessionId": "sess_68b20033-7165-4c02-9031-f8795b380bfa",
+        "timestamp": 1794461141098
+      }
+    ],
+    "5.10 Write property test for unknown, down and unusable observations": [
+      {
+        "executionId": "ff774bd1-0572-41fa-b0cf-915ff773ff7b",
+        "chatSessionId": "sess_fe15e713-fdaa-4740-9322-0f4352e6ac1c",
+        "timestamp": 1794461163411
+      },
+      {
+        "executionId": "ff774bd1-0572-41fa-b0cf-915ff773ff7b",
+        "chatSessionId": "sess_fe15e713-fdaa-4740-9322-0f4352e6ac1c",
+        "timestamp": 1794461208610
+      }
+    ],
+    "5.11 Write property tests for relearning": [
+      {
+        "executionId": "45c648fb-c119-4a6e-aadb-592d51a60577",
+        "chatSessionId": "sess_5d2b9114-e5f6-4c2d-bb56-e0c01c8859e0",
+        "timestamp": 1794461234803
+      },
+      {
+        "executionId": "45c648fb-c119-4a6e-aadb-592d51a60577",
+        "chatSessionId": "sess_5d2b9114-e5f6-4c2d-bb56-e0c01c8859e0",
+        "timestamp": 1794461295216
+      }
+    ],
+    "5.12 Write unit tests for the anomaly tracker edge cases": [
+      {
+        "executionId": "ca80a1d6-a024-49e4-bd13-ee9c77edaa67",
+        "chatSessionId": "sess_fe5c9311-e30c-41d2-93e3-4bb37d4373c5",
+        "timestamp": 1794461313308
+      },
+      {
+        "executionId": "ca80a1d6-a024-49e4-bd13-ee9c77edaa67",
+        "chatSessionId": "sess_fe5c9311-e30c-41d2-93e3-4bb37d4373c5",
+        "timestamp": 1794461353603
+      }
+    ],
+    "5. Implement the anomaly pure functions": [
+      {
+        "executionId": "ca80a1d6-a024-49e4-bd13-ee9c77edaa67",
+        "chatSessionId": "sess_fe5c9311-e30c-41d2-93e3-4bb37d4373c5",
+        "timestamp": 1794461353679
+      }
+    ],
+    "6.1 Create `intelligence/forecast/trend-fitter.ts`": [
+      {
+        "executionId": "a2ff0a4a-afff-4f15-bf1c-496b2985224c",
+        "chatSessionId": "sess_8e8fb4ea-9481-4ced-82bc-7510f5d90704",
+        "timestamp": 1794462284783
+      },
+      {
+        "executionId": "a2ff0a4a-afff-4f15-bf1c-496b2985224c",
+        "chatSessionId": "sess_8e8fb4ea-9481-4ced-82bc-7510f5d90704",
+        "timestamp": 1794462318860
+      }
+    ],
+    "6.2 Write property tests in `intelligence/forecast/trend-fitter.prop.spec.ts`": [
+      {
+        "executionId": "379e3ca1-f283-4285-a0ec-359ab159fc89",
+        "chatSessionId": "sess_ee0f100a-92b6-4f33-a5af-d684ee307005",
+        "timestamp": 1794462341644
+      },
+      {
+        "executionId": "0d296f77-fece-490a-a6e7-2ed8a8be9eaf",
+        "chatSessionId": "sess_ee0f100a-92b6-4f33-a5af-d684ee307005",
+        "timestamp": 1794463206197
+      }
+    ],
+    "6.3 Create `intelligence/forecast/forecaster.ts`": [
+      {
+        "executionId": "edd98606-b86e-49cb-9642-ad1322d42176",
+        "chatSessionId": "sess_37a47712-c69e-4142-b25f-e0d50cfe9bf6",
+        "timestamp": 1794463242960
+      },
+      {
+        "executionId": "edd98606-b86e-49cb-9642-ad1322d42176",
+        "chatSessionId": "sess_37a47712-c69e-4142-b25f-e0d50cfe9bf6",
+        "timestamp": 1794463305900
+      }
+    ],
+    "6.4 Write property tests in `intelligence/forecast/forecaster.prop.spec.ts`": [
+      {
+        "executionId": "57707a8f-1a8f-4495-ae50-14477d3338cf",
+        "chatSessionId": "sess_93d130d4-6325-42cb-9cc0-00b9a6666d86",
+        "timestamp": 1794463422997
+      },
+      {
+        "executionId": "57707a8f-1a8f-4495-ae50-14477d3338cf",
+        "chatSessionId": "sess_93d130d4-6325-42cb-9cc0-00b9a6666d86",
+        "timestamp": 1794463503581
+      }
+    ],
+    "6.5 Write unit tests for the forecaster in `intelligence/forecast/forecaster.spec.ts`": [
+      {
+        "executionId": "1be49c03-2d6f-4b2e-b654-577b49e8145a",
+        "chatSessionId": "sess_b7eb05d9-46dd-4a6c-bef3-5737c5b79f33",
+        "timestamp": 1794466682213
+      },
+      {
+        "executionId": "1be49c03-2d6f-4b2e-b654-577b49e8145a",
+        "chatSessionId": "sess_b7eb05d9-46dd-4a6c-bef3-5737c5b79f33",
+        "timestamp": 1794466745027
+      }
+    ],
+    "6.6 Create `intelligence/similarity/feature-extractor.ts`": [
+      {
+        "executionId": "f13b355b-788c-4a61-9ce3-cfc571537950",
+        "chatSessionId": "sess_71bcd6b6-0d7d-4d68-b5f8-a3c1f0397042",
+        "timestamp": 1794467341241
+      },
+      {
+        "executionId": "f13b355b-788c-4a61-9ce3-cfc571537950",
+        "chatSessionId": "sess_71bcd6b6-0d7d-4d68-b5f8-a3c1f0397042",
+        "timestamp": 1794467397991
+      }
+    ],
+    "6.7 Write property tests in `intelligence/similarity/feature-extractor.prop.spec.ts`": [
+      {
+        "executionId": "ea6f51bb-76e0-4aa9-a44b-8a4afe2e6a93",
+        "chatSessionId": "sess_ba4665a1-b5b4-424e-874f-29753d71aa30",
+        "timestamp": 1794468916114
+      },
+      {
+        "executionId": "ea6f51bb-76e0-4aa9-a44b-8a4afe2e6a93",
+        "chatSessionId": "sess_ba4665a1-b5b4-424e-874f-29753d71aa30",
+        "timestamp": 1794468987131
+      }
+    ],
+    "6.8 Create `intelligence/similarity/similarity-matcher.ts`": [
+      {
+        "executionId": "2b905949-fce5-40fa-a330-599b4a0ba222",
+        "chatSessionId": "sess_a7f21a64-de7b-41da-837d-d4140d5372bd",
+        "timestamp": 1794469155483
+      },
+      {
+        "executionId": "2b905949-fce5-40fa-a330-599b4a0ba222",
+        "chatSessionId": "sess_a7f21a64-de7b-41da-837d-d4140d5372bd",
+        "timestamp": 1794469189462
+      }
+    ],
+    "6.9 Write property tests in `intelligence/similarity/similarity-matcher.prop.spec.ts`": [
+      {
+        "executionId": "58d3c8e0-9240-46a3-a80c-51b9cc4bef1f",
+        "chatSessionId": "sess_9bf55a91-f998-42ec-b6e5-1379c9d9c18b",
+        "timestamp": 1794469303833
+      },
+      {
+        "executionId": "58d3c8e0-9240-46a3-a80c-51b9cc4bef1f",
+        "chatSessionId": "sess_9bf55a91-f998-42ec-b6e5-1379c9d9c18b",
+        "timestamp": 1794469367957
+      }
+    ],
+    "6.10 Create `intelligence/similarity/incident-similarity.ts`": [
+      {
+        "executionId": "7e7f615a-e324-4f81-aa6c-1505dfd5f3ca",
+        "chatSessionId": "sess_cb51783c-7232-4752-997f-c79953ff2fcb",
+        "timestamp": 1794469782807
+      },
+      {
+        "executionId": "7e7f615a-e324-4f81-aa6c-1505dfd5f3ca",
+        "chatSessionId": "sess_cb51783c-7232-4752-997f-c79953ff2fcb",
+        "timestamp": 1794469833312
+      }
+    ],
+    "6.11 Write property tests in `intelligence/similarity/incident-similarity.prop.spec.ts`": [
+      {
+        "executionId": "4755439f-50f9-478a-9668-2a4060e52224",
+        "chatSessionId": "sess_132f0a28-c24a-4471-9efe-3264c154abb7",
+        "timestamp": 1794471342926
+      },
+      {
+        "executionId": "4755439f-50f9-478a-9668-2a4060e52224",
+        "chatSessionId": "sess_132f0a28-c24a-4471-9efe-3264c154abb7",
+        "timestamp": 1794471449427
+      }
+    ],
+    "6.12 Write unit tests in `intelligence/similarity/incident-similarity.spec.ts`": [
+      {
+        "executionId": "2f78901d-23ba-4a66-9ccb-fd5092c5ae88",
+        "chatSessionId": "sess_eb8bb011-1860-47fc-ba06-b528c97b8718",
+        "timestamp": 1794475744439
+      },
+      {
+        "executionId": "2f78901d-23ba-4a66-9ccb-fd5092c5ae88",
+        "chatSessionId": "sess_eb8bb011-1860-47fc-ba06-b528c97b8718",
+        "timestamp": 1794475818863
+      }
+    ],
+    "6. Implement the forecast and similarity pure functions": [
+      {
+        "executionId": "2f78901d-23ba-4a66-9ccb-fd5092c5ae88",
+        "chatSessionId": "sess_eb8bb011-1860-47fc-ba06-b528c97b8718",
+        "timestamp": 1794475818895
+      }
+    ],
+    "7.1 Create `haunting-engine/src/intelligence/intelligence-step.ts`": [
+      {
+        "executionId": "d9dcfc2e-65e0-407d-9e16-cb4116603fae",
+        "chatSessionId": "sess_7eeaaec5-016b-4d7f-98b8-6efc3fb3c73d",
+        "timestamp": 1794476340733
+      },
+      {
+        "executionId": "d9dcfc2e-65e0-407d-9e16-cb4116603fae",
+        "chatSessionId": "sess_7eeaaec5-016b-4d7f-98b8-6efc3fb3c73d",
+        "timestamp": 1794476414758
+      }
+    ],
+    "7.2 Create the test helper `haunting-engine/src/intelligence/test-support.ts`": [
+      {
+        "executionId": "5bc38dec-c629-4798-804c-06890d09fd4d",
+        "chatSessionId": "sess_71301c5e-68d1-4039-b992-40a9aa8e97b9",
+        "timestamp": 1794479853422
+      },
+      {
+        "executionId": "5bc38dec-c629-4798-804c-06890d09fd4d",
+        "chatSessionId": "sess_71301c5e-68d1-4039-b992-40a9aa8e97b9",
+        "timestamp": 1794479962912
+      }
+    ],
+    "7.3 Write property test for the initial state in `intelligence/intelligence-step.prop.spec.ts`": [
+      {
+        "executionId": "a16335fa-a6fd-4d92-808a-cf3239ed8554",
+        "chatSessionId": "sess_583e222e-fabe-47dc-99b4-6b9de7a326b4",
+        "timestamp": 1794484090795
+      },
+      {
+        "executionId": "a16335fa-a6fd-4d92-808a-cf3239ed8554",
+        "chatSessionId": "sess_583e222e-fabe-47dc-99b4-6b9de7a326b4",
+        "timestamp": 1794484148777
+      }
+    ],
+    "7.4 Write property test for baseline replay equivalence": [
+      {
+        "executionId": "162984d5-0c83-4307-ae1e-96eb0a3a9e3c",
+        "chatSessionId": "sess_0d1c9e75-57e6-4e70-bef8-81ce39cb8cc5",
+        "timestamp": 1794484256275
+      },
+      {
+        "executionId": "162984d5-0c83-4307-ae1e-96eb0a3a9e3c",
+        "chatSessionId": "sess_0d1c9e75-57e6-4e70-bef8-81ce39cb8cc5",
+        "timestamp": 1794484313303
+      }
+    ],
+    "7.5 Write property test for the pre-Poll open-incident guard": [
+      {
+        "executionId": "20cea002-b897-4c25-b4b1-c54e6d5eba2e",
+        "chatSessionId": "sess_492f6564-15c3-422d-b1c7-02f0da95a2d6",
+        "timestamp": 1794484389842
+      },
+      {
+        "executionId": "20cea002-b897-4c25-b4b1-c54e6d5eba2e",
+        "chatSessionId": "sess_492f6564-15c3-422d-b1c7-02f0da95a2d6",
+        "timestamp": 1794484443549
+      }
+    ],
+    "7.6 Write property test for Blind_Polls": [
+      {
+        "executionId": "83cc45df-3380-4c7d-a9fe-c0f2d5c12768",
+        "chatSessionId": "sess_f4b51dea-6a60-4a55-a6a7-8590dd657fc8",
+        "timestamp": 1794484466369
+      },
+      {
+        "executionId": "83cc45df-3380-4c7d-a9fe-c0f2d5c12768",
+        "chatSessionId": "sess_f4b51dea-6a60-4a55-a6a7-8590dd657fc8",
+        "timestamp": 1794484520182
+      }
+    ],
+    "7.7 Write property test for the reported anomalies": [
+      {
+        "executionId": "0e1ecf56-89f6-4e84-b663-3d3b08513b2c",
+        "chatSessionId": "sess_e91be237-0f43-44fe-8d1e-ad91ee6adaef",
+        "timestamp": 1794484553480
+      },
+      {
+        "executionId": "0e1ecf56-89f6-4e84-b663-3d3b08513b2c",
+        "chatSessionId": "sess_e91be237-0f43-44fe-8d1e-ad91ee6adaef",
+        "timestamp": 1794484632836
+      }
+    ],
+    "7.8 Write property test for purity and replay": [
+      {
+        "executionId": "41255b62-7869-4925-aff8-2bcad957dee6",
+        "chatSessionId": "sess_3158da7e-3c42-4bb7-bc82-3b749772ad12",
+        "timestamp": 1794484670592
+      },
+      {
+        "executionId": "41255b62-7869-4925-aff8-2bcad957dee6",
+        "chatSessionId": "sess_3158da7e-3c42-4bb7-bc82-3b749772ad12",
+        "timestamp": 1794484747164
+      }
+    ],
+    "7.9 Write property test for the JSON round trip": [
+      {
+        "executionId": "1bb746b5-436a-4896-8c49-25a0e497ca20",
+        "chatSessionId": "sess_835cec15-72a5-4c62-82d8-78e4b27defff",
+        "timestamp": 1794484761061
+      },
+      {
+        "executionId": "1bb746b5-436a-4896-8c49-25a0e497ca20",
+        "chatSessionId": "sess_835cec15-72a5-4c62-82d8-78e4b27defff",
+        "timestamp": 1794484851899
+      }
+    ],
+    "7.10 Write unit and worked-example tests in `intelligence/intelligence-step.spec.ts`": [
+      {
+        "executionId": "42f63456-7964-4cf0-9687-572b381ca4b6",
+        "chatSessionId": "sess_ec30f774-84f0-445c-a845-8c0c801ca974",
+        "timestamp": 1794485075106
+      },
+      {
+        "executionId": "42f63456-7964-4cf0-9687-572b381ca4b6",
+        "chatSessionId": "sess_ec30f774-84f0-445c-a845-8c0c801ca974",
+        "timestamp": 1794485211794
+      }
+    ],
+    "7. Implement the intelligence pipeline step": [
+      {
+        "executionId": "42f63456-7964-4cf0-9687-572b381ca4b6",
+        "chatSessionId": "sess_ec30f774-84f0-445c-a845-8c0c801ca974",
+        "timestamp": 1794485211833
       }
     ]
   }
