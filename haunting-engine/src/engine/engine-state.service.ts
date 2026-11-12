@@ -3,6 +3,8 @@ import type { ClusterSnapshot, Incident } from '@haunted-cluster/shared';
 import { ENGINE_CONFIG } from '../config/config.module';
 import type { EngineConfig } from '../config/engine-config';
 import { initialTrackerState, TrackerState } from '../incidents/incident-tracker';
+import { initialIntelligenceState } from '../intelligence/intelligence-step';
+import type { IntelligenceState } from '../intelligence/intelligence-types';
 
 /**
  * The single owner of the engine's mutable state: the latest Cluster_Snapshot
@@ -15,9 +17,11 @@ import { initialTrackerState, TrackerState } from '../incidents/incident-tracker
 export class EngineStateService {
   private snapshot: ClusterSnapshot | null = null;
   private trackerState: TrackerState;
+  private intelligenceState: IntelligenceState;
 
   constructor(@Inject(ENGINE_CONFIG) private readonly config: EngineConfig) {
     this.trackerState = initialTrackerState(config.serviceChain);
+    this.intelligenceState = initialIntelligenceState(config.serviceChain);
   }
 
   /** null until the first Poll completes. */
@@ -29,10 +33,15 @@ export class EngineStateService {
     return this.trackerState;
   }
 
-  /** Replaces both at once, so readers never see a snapshot and tracker from different Polls. */
-  update(snapshot: ClusterSnapshot, tracker: TrackerState): void {
+  get intelligence(): IntelligenceState {
+    return this.intelligenceState;
+  }
+
+  /** Replaces all three at once, so readers never see state from different Polls. */
+  update(snapshot: ClusterSnapshot, tracker: TrackerState, intelligence: IntelligenceState): void {
     this.snapshot = snapshot;
     this.trackerState = tracker;
+    this.intelligenceState = intelligence;
   }
 
   /** Open incidents in SERVICE_CHAIN order, upstream first. */

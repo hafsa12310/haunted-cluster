@@ -337,13 +337,13 @@ describe('MetricsService', () => {
       expect(rssValue).toBeCloseTo(rss, -6);
     });
 
-    it('should update gauge values after 5000ms interval fires', async () => {
+    it('should update gauge values after 1000ms interval fires', async () => {
       // Spy on process.memoryUsage to return deterministic values.
       const mockMemory = { heapUsed: 123_456_789, rss: 987_654_321, heapTotal: 0, external: 0, arrayBuffers: 0 };
       const memorySpy = jest.spyOn(process, 'memoryUsage').mockReturnValue(mockMemory);
 
-      // Advance fake timers by exactly 5000ms to trigger the interval callback.
-      jest.advanceTimersByTime(5_000);
+      // Advance fake timers by exactly 1000ms to trigger the interval callback.
+      jest.advanceTimersByTime(1_000);
 
       const metrics = await service.getMetrics();
 
@@ -360,7 +360,7 @@ describe('MetricsService', () => {
       memorySpy.mockRestore();
     });
 
-    it('should update gauges on every 5000ms tick (polls continuously)', async () => {
+    it('should update gauges on every 1000ms tick (polls continuously)', async () => {
       const firstMemory = { heapUsed: 100_000_000, rss: 200_000_000, heapTotal: 0, external: 0, arrayBuffers: 0 };
       const secondMemory = { heapUsed: 150_000_000, rss: 250_000_000, heapTotal: 0, external: 0, arrayBuffers: 0 };
 
@@ -370,7 +370,7 @@ describe('MetricsService', () => {
         .mockReturnValueOnce(secondMemory);
 
       // First tick.
-      jest.advanceTimersByTime(5_000);
+      jest.advanceTimersByTime(1_000);
       const metricsAfterFirst = await service.getMetrics();
       const heap1 = extractMetricValue(metricsAfterFirst, 'process_heap_used_bytes', {
         service: 'test-service',
@@ -378,7 +378,7 @@ describe('MetricsService', () => {
       expect(heap1).toBe(100_000_000);
 
       // Second tick.
-      jest.advanceTimersByTime(5_000);
+      jest.advanceTimersByTime(1_000);
       const metricsAfterSecond = await service.getMetrics();
       const heap2 = extractMetricValue(metricsAfterSecond, 'process_heap_used_bytes', {
         service: 'test-service',
@@ -387,6 +387,74 @@ describe('MetricsService', () => {
 
       memorySpy.mockRestore();
     });
+  });
+
+  // ── MEMORY_GAUGE_INTERVAL_MS (Requirements 12.6, 15.3, 15.4, 15.5) ───────
+
+  describe('MEMORY_GAUGE_INTERVAL_MS (Requirements 12.6, 15.3, 15.4, 15.5)', () => {
+    const ENV_KEY = 'MEMORY_GAUGE_INTERVAL_MS';
+    let savedEnv: string | undefined;
+
+    beforeEach(() => {
+      // Stop the outer service's 1000 ms timer so it doesn't add extra ticks.
+      service.onModuleDestroy();
+      savedEnv = process.env[ENV_KEY];
+      delete process.env[ENV_KEY];
+    });
+
+    afterEach(() => {
+      if (savedEnv === undefined) {
+        delete process.env[ENV_KEY];
+      } else {
+        process.env[ENV_KEY] = savedEnv;
+      }
+      jest.restoreAllMocks();
+    });
+
+    /**
+     * Constructs a service with the given env value and returns how many times
+     * the memory gauges were refreshed after `ms` of fake time.
+     */
+    function ticksAfter(envValue: string | undefined, ms: number): number {
+      if (envValue === undefined) {
+        delete process.env[ENV_KEY];
+      } else {
+        process.env[ENV_KEY] = envValue;
+      }
+      const svc = new MetricsService('interval-test');
+      try {
+        const spy = jest.spyOn(process, 'memoryUsage');
+        spy.mockClear();
+        jest.advanceTimersByTime(ms);
+        return spy.mock.calls.length;
+      } finally {
+        svc.onModuleDestroy();
+      }
+    }
+
+    it.each([
+      ['unset', undefined],
+      ['empty', ''],
+    ])('defaults to 1000 ms when env is %s', (_label, value) => {
+      expect(ticksAfter(value, 999)).toBe(0);
+      expect(ticksAfter(value, 1_000)).toBe(1);
+    });
+
+    it.each([250, 2000])('uses a valid override of %p ms', (interval) => {
+      expect(ticksAfter(String(interval), interval - 1)).toBe(0);
+      expect(ticksAfter(String(interval), interval)).toBe(1);
+      expect(ticksAfter(String(interval), interval * 3)).toBe(3);
+    });
+
+    it.each(['0', '-5', '1.5', 'abc', 'NaN', 'Infinity'])(
+      'throws an error naming MEMORY_GAUGE_INTERVAL_MS for invalid value %p',
+      (raw) => {
+        process.env[ENV_KEY] = raw;
+        expect(() => new MetricsService('invalid-interval')).toThrow(
+          /MEMORY_GAUGE_INTERVAL_MS/,
+        );
+      },
+    );
   });
 
   // ── onModuleDestroy / timer cleanup ───────────────────────────────────────

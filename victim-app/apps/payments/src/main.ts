@@ -1,5 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { validateMemoryGaugeInterval } from '@app/common';
 import { AppModule } from './app.module';
 
 /**
@@ -14,6 +15,8 @@ import { AppModule } from './app.module';
  * Requirements: 11.1
  */
 async function bootstrap(): Promise<void> {
+  validateMemoryGaugeInterval();
+
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 

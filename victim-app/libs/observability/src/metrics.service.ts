@@ -5,6 +5,7 @@ import {
   Histogram,
   Gauge,
 } from 'prom-client';
+import { parseMemoryGaugeIntervalMs } from '@app/common';
 
 export const METRICS_SERVICE_NAME = 'METRICS_SERVICE_NAME';
 
@@ -79,8 +80,14 @@ export class MetricsService implements OnModuleDestroy {
     // Seed gauges immediately so the first /metrics scrape has data.
     this.updateMemoryGauges();
 
-    // Poll every 5 000 ms per Requirement 2.7.
-    this.memoryPollTimer = setInterval(() => this.updateMemoryGauges(), 5_000);
+    // Poll at the configured interval (MEMORY_GAUGE_INTERVAL_MS, default 1000 ms).
+    const intervalMs = parseMemoryGaugeIntervalMs(
+      process.env.MEMORY_GAUGE_INTERVAL_MS,
+    );
+    this.memoryPollTimer = setInterval(
+      () => this.updateMemoryGauges(),
+      intervalMs,
+    );
   }
 
   // ── Lifecycle ────────────────────────────────────────────────────────────

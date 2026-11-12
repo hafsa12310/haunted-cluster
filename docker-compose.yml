@@ -13,6 +13,7 @@ services:
       DOWNSTREAM_TIMEOUT_MS: 5000
       CHAOS_TTL_SECONDS: 120
       LEAK_MB_PER_SECOND: ${LEAK_MB_PER_SECOND:-2}
+      MEMORY_GAUGE_INTERVAL_MS: ${MEMORY_GAUGE_INTERVAL_MS:-1000}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
       interval: 10s
@@ -33,6 +34,7 @@ services:
       DOWNSTREAM_TIMEOUT_MS: 5000
       CHAOS_TTL_SECONDS: 120
       LEAK_MB_PER_SECOND: ${LEAK_MB_PER_SECOND:-2}
+      MEMORY_GAUGE_INTERVAL_MS: ${MEMORY_GAUGE_INTERVAL_MS:-1000}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
       interval: 10s
@@ -51,6 +53,7 @@ services:
       PORT: 3002
       CHAOS_TTL_SECONDS: 120
       LEAK_MB_PER_SECOND: ${LEAK_MB_PER_SECOND:-2}
+      MEMORY_GAUGE_INTERVAL_MS: ${MEMORY_GAUGE_INTERVAL_MS:-1000}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3002/health"]
       interval: 10s

@@ -267,17 +267,17 @@ Tasks 1 and 3 to 6 cover shared types, configuration and the pure functions, and
     - Forecast events come before anomaly events in the returned list.
     - _Requirements: R3.8, R4.10, R4.11, R6.9, R9.9_
 
-- [ ] 8. Wire the intelligence layer into the engine
-  - [ ] 8.1 Update `EngineStateService` and confirm the incident tracker field
+- [x] 8. Wire the intelligence layer into the engine
+  - [x] 8.1 Update `EngineStateService` and confirm the incident tracker field
     - In `engine/engine-state.service.ts` add `private intelligenceState` (initialized with `initialIntelligenceState` for the configured chain), a getter `intelligence`, and `update(snapshot, tracker, intelligence)` that replaces the three together. `openIncidents()` and `resolvedIncidents()` stay unchanged.
     - In `incidents/incident-tracker.ts` confirm `openIncident` sets `similar: null` in the object it builds (task 1.3 may already have done it); add it if missing. No decision logic changes.
     - _Requirements: R9.3, R10.4_
 
-  - [ ] 8.2 Add `emitIntelligenceEvent` to `engine/events.gateway.ts`
+  - [x] 8.2 Add `emitIntelligenceEvent` to `engine/events.gateway.ts`
     - Map each internal `IntelligenceEvent` to its Socket.IO name and payload (`anomaly:detected`, `anomaly:cleared`, `forecast:warning`, `forecast:cleared`) with an exhaustive `switch`. `handleConnection` is unchanged.
     - _Requirements: R10.5, R10.9, R10.10_
 
-  - [ ] 8.3 Wire `PollerService` in `engine/poller.service.ts`
+  - [x] 8.3 Wire `PollerService` in `engine/poller.service.ts`
     - Keep the constructor. After attribution capture `prevTracker` and `prevIntel` before `trackIncidents`, then call `stepIntelligence(prevIntel, input, config)` inside a `try`, with `openBefore` derived from `prevTracker.open`.
     - On a throw, log `Intelligence step failed: <message>` with the stack, keep `prevIntel`, and emit no `anomaly:*` or `forecast:*` events. The snapshot is still stored and emitted.
     - Call `applySimilarity(tracker1, incidentEvents, now, chain, config)` in its own `try/catch`, log every returned `SimilarityFailure` and any thrown error with the stack, and use the returned tracker and events.
@@ -285,79 +285,79 @@ Tasks 1 and 3 to 6 cover shared types, configuration and the pure functions, and
     - Emit in this order: snapshot, incident events, forecast events, anomaly events, in the order the step returned them.
     - _Requirements: R8.14, R9.3, R9.4, R9.6, R9.9, R6.10_
 
-  - [ ] 8.4 Update existing specs for the new required fields
+  - [x] 8.4 Update existing specs for the new required fields
     - Add `anomalies: []`, `forecasts: []` and `similar: null` wherever a `ClusterSnapshot` or `Incident` literal is built, and adapt calls to the new `update(snapshot, tracker, intelligence)` signature, in: `poller.service.spec.ts`, `events.gateway.spec.ts`, `snapshot.controller.spec.ts`, `incident-tracker.spec.ts`, `incident-tracker.prop.spec.ts`, `incidents.controller.spec.ts` and the e2e helpers in `haunting-engine/test/`. `app.module.spec.ts` is handled in task 8.7.
     - Do not change any expected decision or assertion beyond these fields.
     - _Requirements: R9.7, R10.3, R10.4_
 
-  - [ ] 8.5 Extend `engine/poller.service.spec.ts`
+  - [x] 8.5 Extend `engine/poller.service.spec.ts`
     - Call order: forecast before tracking, and the pre-Poll incident state is passed to the step.
     - An injected throw in `stepIntelligence`: previous state kept, snapshot emitted with `anomalies` and `forecasts` from the retained state, no intelligence events, error logged with the stack.
     - A throw or failure in similarity: `similar` is `null`, the incident event is still emitted, the error is logged with the stack.
     - Emission order: snapshot, incident events, forecast events, anomaly events. A Blind_Poll snapshot repeats the previous `anomalies` and `forecasts`.
     - _Requirements: R8.14, R9.6, R9.9, R4.18_
 
-  - [ ] 8.6 Extend `engine/events.gateway.spec.ts`
+  - [x] 8.6 Extend `engine/events.gateway.spec.ts`
     - `emitIntelligenceEvent` maps each of the four internal events to the right Socket.IO name and payload; a connecting client still receives the latest snapshot with `anomalies` and `forecasts`; with no stored snapshot a connecting client receives none.
     - _Requirements: R10.5, R10.9, R10.10_
 
-  - [ ] 8.7 Extend `src/app.module.spec.ts` with the real AppModule boot
+  - [x] 8.7 Extend `src/app.module.spec.ts` with the real AppModule boot
     - Build the real `AppModule` (no new providers), call `app.init()` and assert it resolves without throwing. Assert that the first stored snapshot has `anomalies` and `forecasts` fields (empty arrays). Close the app in `afterAll`.
     - _Requirements: R13.1_
 
-  - [ ] 8.8 Extend `haunting-engine/test/snapshot-stream.e2e-spec.ts`
+  - [x] 8.8 Extend `haunting-engine/test/snapshot-stream.e2e-spec.ts`
     - Assert the first snapshot received over Socket.IO contains `anomalies` and `forecasts`.
     - _Requirements: R13.5, R10.9_
 
-- [ ] 9. Checkpoint - Build, boot and test the engine with the intelligence layer
+- [x] 9. Checkpoint - Build, boot and test the engine with the intelligence layer
   - Run `npm run build:shared` and `npm run build` in `haunting-engine/`, start the engine, `GET /health` and confirm a success response within 30 seconds, then stop it. Run `npm test` in `haunting-engine/`.
   - Ensure all tests pass, ask the user if questions arise.
   - _Requirements: R13.2, R13.3, R13.4_
 
-- [ ] 10. Update the victim-app for the leak demo
-  - [ ] 10.1 Add `MEMORY_GAUGE_INTERVAL_MS` validation in `libs/common`
+- [x] 10. Update the victim-app for the leak demo
+  - [x] 10.1 Add `MEMORY_GAUGE_INTERVAL_MS` validation in `libs/common`
     - In `libs/common/src/env-validation.ts` add `parseMemoryGaugeIntervalMs(raw)` returning 1000 for `undefined` or an empty string, otherwise requiring the trimmed string to match `/^[1-9]\d*$/` and be a safe integer; any other value throws an `Error` naming `MEMORY_GAUGE_INTERVAL_MS`.
     - Add `validateMemoryGaugeInterval()` beside `validateRequiredEnv`: on error log `[Bootstrap] MEMORY_GAUGE_INTERVAL_MS … Exiting.` and call `process.exit(1)`. Export both from `libs/common/src/index.ts`.
     - Call `validateMemoryGaugeInterval()` in the `main.ts` of gateway, orders and payments before `NestFactory.create`.
     - _Requirements: R15.3, R15.4, R15.5_
 
-  - [ ] 10.2 Write unit tests for the parser and validator
+  - [x] 10.2 Write unit tests for the parser and validator
     - In `libs/common/src/env-validation.spec.ts`: default 1000 for unset and empty, a valid override, one rejection per invalid class (`0`, `-5`, `1.5`, `abc`, `NaN`, `Infinity`) with the error naming `MEMORY_GAUGE_INTERVAL_MS`, and `validateMemoryGaugeInterval` logging and exiting with code 1 (spy on `process.exit`).
     - _Requirements: R15.3, R15.4, R15.5, R12.6_
 
-  - [ ] 10.3 Write property test in `libs/common/src/env-validation.prop.spec.ts`
+  - [x] 10.3 Write property test in `libs/common/src/env-validation.prop.spec.ts`
     - **Property 35: Only positive integers are accepted as a gauge interval**
     - Tag: `// Feature: engine-intelligence, Property 35: Only positive integers are accepted as a gauge interval`, `numRuns` at least 100.
     - **Validates: Requirements R15.3, R15.4, R15.5**
 
-  - [ ] 10.4 Use the configured interval in `MetricsService` and update the 5000 ms specs
+  - [x] 10.4 Use the configured interval in `MetricsService` and update the 5000 ms specs
     - In `libs/observability/src/metrics.service.ts` read `process.env.MEMORY_GAUGE_INTERVAL_MS` in the constructor through `parseMemoryGaugeIntervalMs` and use the result in `setInterval` (default 1000). Keep the initial gauge refresh, metric names, labels and values.
     - In `metrics.service.spec.ts` change the two tests that advance fake timers by `5_000` ("after 5000ms interval fires" and "every 5000ms tick") to `1_000`, and update the constructor comment from 5 000 ms to the configured interval.
     - _Requirements: R15.3, R15.4, R15.6, R15.8_
 
-  - [ ] 10.5 Add `MEMORY_GAUGE_INTERVAL_MS` tests to `metrics.service.spec.ts`
+  - [x] 10.5 Add `MEMORY_GAUGE_INTERVAL_MS` tests to `metrics.service.spec.ts`
     - Default 1000, a valid override, and one rejection per invalid class (`0`, `-5`, `1.5`, `abc`, `NaN`, `Infinity`).
     - _Requirements: R12.6, R15.3, R15.4, R15.5_
 
-  - [ ] 10.6 Update `victim-app/.env.example`
+  - [x] 10.6 Update `victim-app/.env.example`
     - List `LEAK_MB_PER_SECOND=2` and `MEMORY_GAUGE_INTERVAL_MS=1000`, each with a one-line description. Do not change the code default in `chaos.service.ts`.
     - _Requirements: R15.2, R15.7_
 
-- [ ] 11. Update compose and environment files
-  - [ ] 11.1 Update `docker-compose.yml`
+- [x] 11. Update compose and environment files
+  - [x] 11.1 Update `docker-compose.yml`
     - Check that the `haunting-engine` service passes the 17 engine variables from task 3.3 as `${NAME:-default}` with the defaults of R11.1; add any that are missing. Do not pass the two `INTEGRATION_*` variables.
     - For each of `gateway`, `orders` and `payments` add `MEMORY_GAUGE_INTERVAL_MS: ${MEMORY_GAUGE_INTERVAL_MS:-1000}`. The `LEAK_MB_PER_SECOND` replacement was done in task 2.3. Leave `mem_limit`, healthchecks and `CHAOS_TTL_SECONDS` unchanged.
     - _Requirements: R11.11, R15.7, R15.8_
 
-  - [ ] 11.2 Update `haunting-engine/.env.example`
+  - [x] 11.2 Update `haunting-engine/.env.example`
     - Check whether `INTEGRATION_LEAK_TIMEOUT_SECONDS=300` and `INTEGRATION_MIN_LEAD_SECONDS=10` are present (task 3.3 may have added them). Add only the ones missing, each marked test-only with a one-line description.
     - _Requirements: R11.12, R14.1, R14.6_
 
-  - [ ] 11.3 Write file-check specs for the env files and compose
+  - [x] 11.3 Write file-check specs for the env files and compose
     - In `haunting-engine/src/config/env-files.spec.ts` parse `haunting-engine/.env.example`, `victim-app/.env.example` and `docker-compose.yml`: every variable is listed with its documented default; compose uses `${NAME:-default}` with matching defaults; the two `INTEGRATION_*` variables are in `.env.example` but not in compose; the three victim services set the leak and gauge variables.
     - _Requirements: R11.11, R11.12, R15.1, R15.2, R15.7_
 
-- [ ] 12. Checkpoint - Victim-app and full stack boot
+- [x] 12. Checkpoint - Victim-app and full stack boot
   - Run `npm run build` and `npm test` in `victim-app/`. Run `docker compose up --build`; confirm every container is healthy and `haunting-engine` reports healthy within 30 seconds, and that a snapshot received within the next 30 seconds contains `anomalies` and `forecasts`.
   - Ensure all tests pass, ask the user if questions arise.
   - _Requirements: R13.2, R13.3, R13.5, R13.6_

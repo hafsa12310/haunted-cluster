@@ -1,6 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { validateRequiredEnv } from '@app/common';
+import { validateMemoryGaugeInterval, validateRequiredEnv } from '@app/common';
 import { AppModule } from './app.module';
 
 /**
@@ -16,6 +16,7 @@ import { AppModule } from './app.module';
  */
 async function bootstrap(): Promise<void> {
   validateRequiredEnv(['PAYMENTS_URL']);
+  validateMemoryGaugeInterval();
 
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));

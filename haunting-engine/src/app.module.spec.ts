@@ -40,6 +40,39 @@ async function fakeQuery(promql: string, _labelKey: LabelKey): Promise<Vector> {
   return new Map(CONFIG.serviceChain.map((s) => [s, value]));
 }
 
+/** Requirements: 13.1 */
+describe('AppModule boot with the intelligence layer', () => {
+  let app: INestApplication;
+  let moduleRef: TestingModule;
+
+  beforeAll(async () => {
+    moduleRef = await Test.createTestingModule({ imports: [AppModule.forRoot(CONFIG)] })
+      .overrideProvider(PrometheusClient)
+      .useValue({ query: jest.fn(fakeQuery) })
+      .compile();
+    app = moduleRef.createNestApplication();
+    // Fake timers only while starting, so the first Poll runs once and later timers never fire.
+    jest.useFakeTimers();
+    try {
+      await expect(app.init()).resolves.toBeDefined();
+      await jest.advanceTimersByTimeAsync(0);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('stores a first snapshot with empty anomalies and forecasts', () => {
+    const snapshot = moduleRef.get(EngineStateService).latestSnapshot;
+    expect(snapshot).toBeDefined();
+    expect(snapshot?.anomalies).toEqual([]);
+    expect(snapshot?.forecasts).toEqual([]);
+  });
+});
+
 describe('AppModule', () => {
   let moduleRef: TestingModule;
   let app: INestApplication;

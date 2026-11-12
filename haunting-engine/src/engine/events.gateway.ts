@@ -8,6 +8,7 @@ import type {
 import type { Server, Socket } from 'socket.io';
 import type { ChaosNotifier } from '../chaos-proxy/chaos-proxy.service';
 import type { IncidentEvent } from '../incidents/incident-tracker';
+import type { IntelligenceEvent } from '../intelligence/intelligence-step';
 import { EngineStateService } from './engine-state.service';
 
 export type EngineServer = Server<ClientToServerEvents, ServerToClientEvents>;
@@ -48,6 +49,28 @@ export class EventsGateway implements OnGatewayConnection, ChaosNotifier {
   /** Requirement 9.3 */
   emitIncidentEvent(event: IncidentEvent): void {
     this.server.emit(INCIDENT_EVENT_NAMES[event.type], event.incident);
+  }
+
+  /** Requirements 10.5, 10.9, 10.10: one Socket.IO event per internal intelligence event. */
+  emitIntelligenceEvent(event: IntelligenceEvent): void {
+    switch (event.type) {
+      case 'anomaly:detected':
+        this.server.emit('anomaly:detected', event.reading);
+        return;
+      case 'anomaly:cleared':
+        this.server.emit('anomaly:cleared', { service: event.service, signal: event.signal });
+        return;
+      case 'forecast:warning':
+        this.server.emit('forecast:warning', event.forecast);
+        return;
+      case 'forecast:cleared':
+        this.server.emit('forecast:cleared', { service: event.service, reason: event.reason });
+        return;
+      default: {
+        const unreachable: never = event;
+        throw new Error(`Unhandled intelligence event: ${JSON.stringify(unreachable)}`);
+      }
+    }
   }
 
   /** Requirement 7.6 */

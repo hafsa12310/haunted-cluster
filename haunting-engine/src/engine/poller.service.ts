@@ -13,6 +13,12 @@ import type { EngineConfig } from '../config/engine-config';
 import { clusterDread, scoreService, unknownHealth } from '../health/health-scoring';
 import { attributeFaults } from '../incidents/attribution';
 import { trackIncidents } from '../incidents/incident-tracker';
+import {
+  intelligenceView,
+  stepIntelligence,
+  type IntelligenceEvent,
+} from '../intelligence/intelligence-step';
+import { applySimilarity } from '../intelligence/similarity/incident-similarity';
 import { MetricsCollectorService } from '../metrics/metrics-collector.service';
 import { MetricsUnavailableError } from '../metrics/prometheus.client';
 import { EngineStateService } from './engine-state.service';
@@ -93,29 +99,83 @@ export class PollerService implements OnApplicationBootstrap, OnModuleDestroy {
       metricsAvailable = false;
     }
 
-    const snapshot: ClusterSnapshot = {
-      timestamp: new Date(now).toISOString(),
-      metricsAvailable,
-      services: health,
-      dread: clusterDread(health),
-      anomalies: [],
-      forecasts: [],
-    };
     const byService = Object.fromEntries(health.map((h) => [h.service, h])) as Record<
       ServiceName,
       ServiceHealth
     >;
     const attributions = metricsAvailable ? attributeFaults(chain, byService) : [];
-    const { state, events } = trackIncidents(
-      this.state.tracker,
+
+    // Pre-Poll state, captured before anything changes (R2.7, R9.3).
+    const prevTracker = this.state.tracker;
+    const prevIntel = this.state.intelligence;
+
+    const { state: tracker1, events: incidentEvents1 } = trackIncidents(
+      prevTracker,
       { now, metricsAvailable, health: byService, attributions, chaosEvents: this.chaosLog.recent() },
       this.config,
       randomUUID,
     );
 
-    this.state.update(snapshot, state);
+    // Intelligence step: a failure keeps the previous state and emits nothing.
+    let intelligence = prevIntel;
+    let intelligenceEvents: IntelligenceEvent[] = [];
+    try {
+      const openBefore = Object.fromEntries(
+        chain.map((s) => [s, prevTracker.open[s] !== undefined]),
+      ) as Record<ServiceName, boolean>;
+      const result = stepIntelligence(
+        prevIntel,
+        { now, metricsAvailable, health: byService, openBefore },
+        this.config,
+      );
+      intelligence = result.state;
+      intelligenceEvents = result.events;
+    } catch (error) {
+      this.logger.error(
+        `Intelligence step failed: ${describe(error)}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+    }
+
+    // Similarity matching: failures leave `similar` null and never stop the Poll.
+    let tracker2 = tracker1;
+    let incidentEvents = incidentEvents1;
+    try {
+      const applied = applySimilarity(tracker1, incidentEvents1, now, chain, this.config);
+      for (const failure of applied.failures) {
+        this.logger.error(
+          `Similarity failed for incident ${failure.incidentId} (${failure.phase}): ${describe(failure.error)}`,
+          failure.error instanceof Error ? failure.error.stack : undefined,
+        );
+      }
+      tracker2 = applied.tracker;
+      incidentEvents = applied.events;
+    } catch (error) {
+      this.logger.error(
+        `Similarity step failed: ${describe(error)}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+    }
+
+    const { anomalies, forecasts } = intelligenceView(intelligence, chain);
+    const snapshot: ClusterSnapshot = {
+      timestamp: new Date(now).toISOString(),
+      metricsAvailable,
+      services: health,
+      dread: clusterDread(health),
+      anomalies,
+      forecasts,
+    };
+
+    this.state.update(snapshot, tracker2, intelligence);
     this.gateway.emitSnapshot(snapshot);
-    for (const event of events) this.gateway.emitIncidentEvent(event);
+    for (const event of incidentEvents) this.gateway.emitIncidentEvent(event);
+    for (const event of intelligenceEvents) {
+      if (event.type.startsWith('forecast:')) this.gateway.emitIntelligenceEvent(event);
+    }
+    for (const event of intelligenceEvents) {
+      if (event.type.startsWith('anomaly:')) this.gateway.emitIntelligenceEvent(event);
+    }
   }
 }
 

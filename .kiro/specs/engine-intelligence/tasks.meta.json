@@ -63,6 +63,10 @@
     "7.8 Write property test for purity and replay": {
       "status": "passed",
       "lastRunTimestamp": 1794484737266
+    },
+    "10.3 Write property test in `libs/common/src/env-validation.prop.spec.ts`": {
+      "status": "passed",
+      "lastRunTimestamp": 1794486959093
     }
   },
   "executionHistory": {
@@ -646,6 +650,250 @@
         "executionId": "42f63456-7964-4cf0-9687-572b381ca4b6",
         "chatSessionId": "sess_ec30f774-84f0-445c-a845-8c0c801ca974",
         "timestamp": 1794485211833
+      }
+    ],
+    "8.1 Update `EngineStateService` and confirm the incident tracker field": [
+      {
+        "executionId": "6cd58b5b-f6bf-4b33-948c-e5573b018c2d",
+        "chatSessionId": "sess_0148f5f1-c6de-437a-924a-735486131b0d",
+        "timestamp": 1794485372085
+      },
+      {
+        "executionId": "6cd58b5b-f6bf-4b33-948c-e5573b018c2d",
+        "chatSessionId": "sess_0148f5f1-c6de-437a-924a-735486131b0d",
+        "timestamp": 1794485457825
+      }
+    ],
+    "8.2 Add `emitIntelligenceEvent` to `engine/events.gateway.ts`": [
+      {
+        "executionId": "8ce9a712-2941-4107-bd19-24d9265da9ae",
+        "chatSessionId": "sess_d0d7adb5-dd80-41e1-b84f-f08b9d1d825f",
+        "timestamp": 1794485498386
+      },
+      {
+        "executionId": "8ce9a712-2941-4107-bd19-24d9265da9ae",
+        "chatSessionId": "sess_d0d7adb5-dd80-41e1-b84f-f08b9d1d825f",
+        "timestamp": 1794485546971
+      }
+    ],
+    "8.3 Wire `PollerService` in `engine/poller.service.ts`": [
+      {
+        "executionId": "a2434ae0-894f-4ac7-bc41-5f75b8eed3c4",
+        "chatSessionId": "sess_881acd2c-2917-4e99-ada6-3254b816cc59",
+        "timestamp": 1794485568007
+      },
+      {
+        "executionId": "a2434ae0-894f-4ac7-bc41-5f75b8eed3c4",
+        "chatSessionId": "sess_881acd2c-2917-4e99-ada6-3254b816cc59",
+        "timestamp": 1794485634649
+      }
+    ],
+    "8.4 Update existing specs for the new required fields": [
+      {
+        "executionId": "0d8fb401-a99f-4875-94c6-4592599e20f8",
+        "chatSessionId": "sess_d772ab94-b3cc-48c6-b9ff-321575264633",
+        "timestamp": 1794485691751
+      },
+      {
+        "executionId": "0d8fb401-a99f-4875-94c6-4592599e20f8",
+        "chatSessionId": "sess_d772ab94-b3cc-48c6-b9ff-321575264633",
+        "timestamp": 1794485747800
+      }
+    ],
+    "8.5 Extend `engine/poller.service.spec.ts`": [
+      {
+        "executionId": "c128a446-923f-4775-883d-9d8278421c3a",
+        "chatSessionId": "sess_894896ac-2fe8-4f69-8886-834060114cda",
+        "timestamp": 1794485778620
+      },
+      {
+        "executionId": "c128a446-923f-4775-883d-9d8278421c3a",
+        "chatSessionId": "sess_894896ac-2fe8-4f69-8886-834060114cda",
+        "timestamp": 1794485922939
+      }
+    ],
+    "8.6 Extend `engine/events.gateway.spec.ts`": [
+      {
+        "executionId": "fb9d5109-3be8-4969-9fc3-f0f925470c44",
+        "chatSessionId": "sess_80576e5d-670c-407b-80f3-f02a93300f25",
+        "timestamp": 1794485979554
+      },
+      {
+        "executionId": "fb9d5109-3be8-4969-9fc3-f0f925470c44",
+        "chatSessionId": "sess_80576e5d-670c-407b-80f3-f02a93300f25",
+        "timestamp": 1794486024122
+      }
+    ],
+    "8.7 Extend `src/app.module.spec.ts` with the real AppModule boot": [
+      {
+        "executionId": "d314f7d0-7ffd-4521-90b5-8451a38a1568",
+        "chatSessionId": "sess_468b64a4-ce0e-494f-8a41-8ffb7ecaa2f9",
+        "timestamp": 1794486065204
+      },
+      {
+        "executionId": "d314f7d0-7ffd-4521-90b5-8451a38a1568",
+        "chatSessionId": "sess_468b64a4-ce0e-494f-8a41-8ffb7ecaa2f9",
+        "timestamp": 1794486117459
+      }
+    ],
+    "8.8 Extend `haunting-engine/test/snapshot-stream.e2e-spec.ts`": [
+      {
+        "executionId": "edfbb010-1ece-4354-a575-cf8e93e8ff02",
+        "chatSessionId": "sess_ddaa4d08-943e-4081-9c92-1478f7959e27",
+        "timestamp": 1794486198571
+      }
+    ],
+    "8. Wire the intelligence layer into the engine": [
+      {
+        "executionId": "edfbb010-1ece-4354-a575-cf8e93e8ff02",
+        "chatSessionId": "sess_ddaa4d08-943e-4081-9c92-1478f7959e27",
+        "timestamp": 1794486198621
+      }
+    ],
+    "9. Checkpoint - Build, boot and test the engine with the intelligence layer": [
+      {
+        "executionId": "2c96d9cb-21dd-4421-8080-c480ae1c4288",
+        "chatSessionId": "sess_5897255f-cc37-41cf-9d20-5675454a4bc0",
+        "timestamp": 1794486272222
+      },
+      {
+        "executionId": "2c96d9cb-21dd-4421-8080-c480ae1c4288",
+        "chatSessionId": "sess_5897255f-cc37-41cf-9d20-5675454a4bc0",
+        "timestamp": 1794486382574
+      }
+    ],
+    "10.1 Add `MEMORY_GAUGE_INTERVAL_MS` validation in `libs/common`": [
+      {
+        "executionId": "a43025bc-ab5b-4cb9-901b-d7e0029578fb",
+        "chatSessionId": "sess_9fdeb7f5-906a-4fd9-93a3-add348b9b3a5",
+        "timestamp": 1794486403492
+      },
+      {
+        "executionId": "a43025bc-ab5b-4cb9-901b-d7e0029578fb",
+        "chatSessionId": "sess_9fdeb7f5-906a-4fd9-93a3-add348b9b3a5",
+        "timestamp": 1794486460130
+      }
+    ],
+    "10.2 Write unit tests for the parser and validator": [
+      {
+        "executionId": "ab7a7c8f-9948-4f84-a097-291fbdd84250",
+        "chatSessionId": "sess_c71d4b5b-2ded-4539-9ae6-a70373f9cc6b",
+        "timestamp": 1794486818739
+      },
+      {
+        "executionId": "ab7a7c8f-9948-4f84-a097-291fbdd84250",
+        "chatSessionId": "sess_c71d4b5b-2ded-4539-9ae6-a70373f9cc6b",
+        "timestamp": 1794486848360
+      }
+    ],
+    "10.3 Write property test in `libs/common/src/env-validation.prop.spec.ts`": [
+      {
+        "executionId": "c6dad288-b5b0-450e-baac-862f03c75d35",
+        "chatSessionId": "sess_5b0d4d6f-69dd-4764-bcc6-7a67f638f451",
+        "timestamp": 1794486926014
+      },
+      {
+        "executionId": "c6dad288-b5b0-450e-baac-862f03c75d35",
+        "chatSessionId": "sess_5b0d4d6f-69dd-4764-bcc6-7a67f638f451",
+        "timestamp": 1794486967832
+      }
+    ],
+    "10.4 Use the configured interval in `MetricsService` and update the 5000 ms specs": [
+      {
+        "executionId": "a14b7932-e249-4bd3-8a1f-4b74707643fe",
+        "chatSessionId": "sess_7378323e-ce3d-4af6-9500-293105b28e6f",
+        "timestamp": 1794487041332
+      },
+      {
+        "executionId": "a14b7932-e249-4bd3-8a1f-4b74707643fe",
+        "chatSessionId": "sess_7378323e-ce3d-4af6-9500-293105b28e6f",
+        "timestamp": 1794487087758
+      }
+    ],
+    "10.5 Add `MEMORY_GAUGE_INTERVAL_MS` tests to `metrics.service.spec.ts`": [
+      {
+        "executionId": "86a85387-dbb8-4f5c-ae83-fcc4de6ccbbe",
+        "chatSessionId": "sess_3a6195a2-944e-452e-910b-33fbb3abf043",
+        "timestamp": 1794487123549
+      },
+      {
+        "executionId": "86a85387-dbb8-4f5c-ae83-fcc4de6ccbbe",
+        "chatSessionId": "sess_3a6195a2-944e-452e-910b-33fbb3abf043",
+        "timestamp": 1794487169626
+      }
+    ],
+    "10.6 Update `victim-app/.env.example`": [
+      {
+        "executionId": "ebfac62a-93ce-4646-9e03-52dd346f53ec",
+        "chatSessionId": "sess_4cdd70f8-64c4-434e-b7d1-b5c490584deb",
+        "timestamp": 1794487263038
+      },
+      {
+        "executionId": "ebfac62a-93ce-4646-9e03-52dd346f53ec",
+        "chatSessionId": "sess_4cdd70f8-64c4-434e-b7d1-b5c490584deb",
+        "timestamp": 1794487287577
+      }
+    ],
+    "10. Update the victim-app for the leak demo": [
+      {
+        "executionId": "ebfac62a-93ce-4646-9e03-52dd346f53ec",
+        "chatSessionId": "sess_4cdd70f8-64c4-434e-b7d1-b5c490584deb",
+        "timestamp": 1794487287617
+      }
+    ],
+    "11.1 Update `docker-compose.yml`": [
+      {
+        "executionId": "58b14853-2412-44dc-a369-060932401d75",
+        "chatSessionId": "sess_d20cb26f-b7b6-4dfb-8d8e-7db96187f041",
+        "timestamp": 1794487319708
+      },
+      {
+        "executionId": "58b14853-2412-44dc-a369-060932401d75",
+        "chatSessionId": "sess_d20cb26f-b7b6-4dfb-8d8e-7db96187f041",
+        "timestamp": 1794487344312
+      }
+    ],
+    "11.2 Update `haunting-engine/.env.example`": [
+      {
+        "executionId": "38152f56-0981-4528-b206-104292911a48",
+        "chatSessionId": "sess_b25b9d18-8213-4230-9a9d-dcdec0b5b1a6",
+        "timestamp": 1794487447612
+      },
+      {
+        "executionId": "38152f56-0981-4528-b206-104292911a48",
+        "chatSessionId": "sess_b25b9d18-8213-4230-9a9d-dcdec0b5b1a6",
+        "timestamp": 1794487466530
+      }
+    ],
+    "11.3 Write file-check specs for the env files and compose": [
+      {
+        "executionId": "4a9fd953-8543-4128-87b6-2c77ec46ab3c",
+        "chatSessionId": "sess_560eb24e-d605-460c-a536-550dbf9a6e15",
+        "timestamp": 1794487702957
+      },
+      {
+        "executionId": "4a9fd953-8543-4128-87b6-2c77ec46ab3c",
+        "chatSessionId": "sess_560eb24e-d605-460c-a536-550dbf9a6e15",
+        "timestamp": 1794487749482
+      }
+    ],
+    "11. Update compose and environment files": [
+      {
+        "executionId": "4a9fd953-8543-4128-87b6-2c77ec46ab3c",
+        "chatSessionId": "sess_560eb24e-d605-460c-a536-550dbf9a6e15",
+        "timestamp": 1794487749539
+      }
+    ],
+    "12. Checkpoint - Victim-app and full stack boot": [
+      {
+        "executionId": "52370067-9935-4914-a7fb-b969b2ac16c4",
+        "chatSessionId": "sess_f8e47e9b-f930-4e73-802f-929a3a38ff71",
+        "timestamp": 1794496639354
+      },
+      {
+        "executionId": "52370067-9935-4914-a7fb-b969b2ac16c4",
+        "chatSessionId": "sess_f8e47e9b-f930-4e73-802f-929a3a38ff71",
+        "timestamp": 1794496757740
       }
     ]
   }

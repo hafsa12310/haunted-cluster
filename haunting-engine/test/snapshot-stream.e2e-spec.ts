@@ -3,7 +3,7 @@
  *
  * Runs against `docker compose up`; see helpers.ts for ENGINE_URL.
  *
- * Requirements: 9.2, 12.5
+ * Requirements: 9.2, 12.5, R13.5, R10.9
  */
 
 import { connect, EngineClient, nextEvent, resetAllChaos } from './helpers';
@@ -27,6 +27,18 @@ describe('Snapshot stream (e2e)', () => {
     expect(Number.isNaN(Date.parse(snapshot.timestamp))).toBe(false);
     expect(snapshot.dread).toBeGreaterThanOrEqual(0);
     expect(snapshot.dread).toBeLessThanOrEqual(1);
+  });
+
+  it('includes anomalies and forecasts in the first snapshot of a new connection', async () => {
+    const fresh = await connect();
+    try {
+      const first = await nextEvent(fresh, 'cluster:snapshot', () => true, 10_000);
+
+      expect(Array.isArray(first.anomalies)).toBe(true);
+      expect(Array.isArray(first.forecasts)).toBe(true);
+    } finally {
+      fresh.close();
+    }
   });
 
   it('reports all three services healthy within 30 s', async () => {

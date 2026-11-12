@@ -66,7 +66,7 @@ describe('SnapshotController (Requirement 10.2)', () => {
 
   it('returns 200 with the latest snapshot after a Poll', async () => {
     const first = snapshot();
-    state.update(first, initialTrackerState(CONFIG.serviceChain));
+    state.update(first, initialTrackerState(CONFIG.serviceChain), state.intelligence);
 
     const res = await request(app.getHttpServer()).get('/api/snapshot');
 
@@ -75,9 +75,9 @@ describe('SnapshotController (Requirement 10.2)', () => {
   });
 
   it('always returns the most recent Poll', async () => {
-    state.update(snapshot({ dread: 0.1 }), initialTrackerState(CONFIG.serviceChain));
+    state.update(snapshot({ dread: 0.1 }), initialTrackerState(CONFIG.serviceChain), state.intelligence);
     const latest = snapshot({ timestamp: '2026-11-08T12:00:02.000Z', dread: 0.9 });
-    state.update(latest, initialTrackerState(CONFIG.serviceChain));
+    state.update(latest, initialTrackerState(CONFIG.serviceChain), state.intelligence);
 
     const res = await request(app.getHttpServer()).get('/api/snapshot');
 
@@ -87,7 +87,7 @@ describe('SnapshotController (Requirement 10.2)', () => {
   it('returns 200, not 503, for a Poll that could not reach Prometheus', async () => {
     // A blind Poll still completed: it reports metricsAvailable: false rather than no data.
     const blind = snapshot({ metricsAvailable: false, dread: 0 });
-    state.update(blind, initialTrackerState(CONFIG.serviceChain));
+    state.update(blind, initialTrackerState(CONFIG.serviceChain), state.intelligence);
 
     const res = await request(app.getHttpServer()).get('/api/snapshot');
 

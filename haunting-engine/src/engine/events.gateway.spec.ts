@@ -1,4 +1,10 @@
-import type { ChaosEvent, ClusterSnapshot, Incident } from '@haunted-cluster/shared';
+import type {
+  AnomalyReading,
+  ChaosEvent,
+  ClusterSnapshot,
+  Incident,
+  MemoryForecast,
+} from '@haunted-cluster/shared';
 import { loadEngineConfig } from '../config/engine-config';
 import type { IncidentEvent } from '../incidents/incident-tracker';
 import { initialTrackerState } from '../incidents/incident-tracker';
@@ -74,7 +80,7 @@ describe('EventsGateway', () => {
         ...initialTrackerState(CONFIG.serviceChain),
         // Stored downstream first, to show the list follows the chain instead.
         open: { payments, orders },
-      });
+      }, state.intelligence);
       const { client, emit } = fakeClient();
 
       gateway.handleConnection(client);
@@ -86,10 +92,53 @@ describe('EventsGateway', () => {
       expect(server.emit).not.toHaveBeenCalled();
     });
 
+    it('sends the latest snapshot with its anomalies and forecasts intact (Requirements 10.9, 10.10)', () => {
+      const { state, gateway } = setup();
+      const withIntel: ClusterSnapshot = {
+        ...SNAPSHOT,
+        anomalies: [
+          {
+            service: 'orders',
+            signal: 'latencyP95Ms',
+            value: 900,
+            baselineMean: 100,
+            baselineStdDev: 20,
+            zScore: 40,
+            method: 'learned',
+          },
+        ],
+        forecasts: [
+          {
+            service: 'payments',
+            slopeMbPerSecond: 1.5,
+            r2: 0.99,
+            latestRssMb: 300,
+            timeToLimitSeconds: 120,
+            warning: true,
+          },
+        ],
+      };
+      state.update(withIntel, initialTrackerState(CONFIG.serviceChain), state.intelligence);
+      const { client, emit } = fakeClient();
+
+      gateway.handleConnection(client);
+
+      expect(emit).toHaveBeenCalledWith('cluster:snapshot', withIntel);
+    });
+
+    it('sends no cluster:snapshot when none is stored (Requirement 10.9)', () => {
+      const { gateway } = setup();
+      const { client, emit } = fakeClient();
+
+      gateway.handleConnection(client);
+
+      expect(emit.mock.calls.some(([name]) => name === 'cluster:snapshot')).toBe(false);
+    });
+
     it('sends the snapshot even when metrics were unavailable', () => {
       const { state, gateway } = setup();
       const blind: ClusterSnapshot = { ...SNAPSHOT, metricsAvailable: false, dread: 0 };
-      state.update(blind, initialTrackerState(CONFIG.serviceChain));
+      state.update(blind, initialTrackerState(CONFIG.serviceChain), state.intelligence);
       const { client, emit } = fakeClient();
 
       gateway.handleConnection(client);
@@ -99,7 +148,7 @@ describe('EventsGateway', () => {
 
     it('sends to the connecting client only, never to the others', () => {
       const { state, gateway, server } = setup();
-      state.update(SNAPSHOT, initialTrackerState(CONFIG.serviceChain));
+      state.update(SNAPSHOT, initialTrackerState(CONFIG.serviceChain), state.intelligence);
       const first = fakeClient();
       const second = fakeClient();
 
@@ -113,7 +162,7 @@ describe('EventsGateway', () => {
 
     it('sends the state as of the moment the client connects', () => {
       const { state, gateway } = setup();
-      state.update(SNAPSHOT, initialTrackerState(CONFIG.serviceChain));
+      state.update(SNAPSHOT, initialTrackerState(CONFIG.serviceChain), state.intelligence);
       const early = fakeClient();
       gateway.handleConnection(early.client);
 
@@ -121,7 +170,7 @@ describe('EventsGateway', () => {
       state.update(later, {
         ...initialTrackerState(CONFIG.serviceChain),
         open: { orders: incident('o1', 'orders') },
-      });
+      }, state.intelligence);
       const late = fakeClient();
       gateway.handleConnection(late.client);
 
@@ -162,6 +211,58 @@ describe('EventsGateway', () => {
         ['incident:resolved', resolved],
         ['incident:opened', opened],
       ]);
+    });
+
+    describe('emitIntelligenceEvent (Requirements 10.5, 10.9, 10.10)', () => {
+      const reading: AnomalyReading = {
+        service: 'orders',
+        signal: 'latencyP95Ms',
+        value: 900,
+        baselineMean: 100,
+        baselineStdDev: 20,
+        zScore: 40,
+        method: 'learned',
+      };
+      const forecast: MemoryForecast = {
+        service: 'payments',
+        slopeMbPerSecond: 1.5,
+        r2: 0.99,
+        latestRssMb: 300,
+        timeToLimitSeconds: 120,
+        warning: true,
+      };
+
+      it('maps anomaly:detected to the reading', () => {
+        const { gateway, server } = setup();
+        gateway.emitIntelligenceEvent({ type: 'anomaly:detected', reading });
+        expect(server.emit.mock.calls).toEqual([['anomaly:detected', reading]]);
+      });
+
+      it('maps anomaly:cleared to { service, signal }', () => {
+        const { gateway, server } = setup();
+        gateway.emitIntelligenceEvent({ type: 'anomaly:cleared', service: 'orders', signal: 'rssMb' });
+        expect(server.emit.mock.calls).toEqual([
+          ['anomaly:cleared', { service: 'orders', signal: 'rssMb' }],
+        ]);
+      });
+
+      it('maps forecast:warning to the forecast', () => {
+        const { gateway, server } = setup();
+        gateway.emitIntelligenceEvent({ type: 'forecast:warning', forecast });
+        expect(server.emit.mock.calls).toEqual([['forecast:warning', forecast]]);
+      });
+
+      it('maps forecast:cleared to { service, reason }', () => {
+        const { gateway, server } = setup();
+        gateway.emitIntelligenceEvent({
+          type: 'forecast:cleared',
+          service: 'payments',
+          reason: 'memory-dropped',
+        });
+        expect(server.emit.mock.calls).toEqual([
+          ['forecast:cleared', { service: 'payments', reason: 'memory-dropped' }],
+        ]);
+      });
     });
 
     it('emitSnapshot broadcasts cluster:snapshot (Requirement 9.2)', () => {

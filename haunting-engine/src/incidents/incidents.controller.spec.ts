@@ -64,7 +64,7 @@ describe('IncidentsController (Requirement 10.3)', () => {
   });
 
   function setTracker(tracker: Partial<TrackerState>): void {
-    state.update(SNAPSHOT, { ...initialTrackerState(CONFIG.serviceChain), ...tracker });
+    state.update(SNAPSHOT, { ...initialTrackerState(CONFIG.serviceChain), ...tracker }, state.intelligence);
   }
 
   it('returns empty lists before any incident, even before the first Poll', async () => {
