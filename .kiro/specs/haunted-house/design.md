@@ -30,7 +30,7 @@ The same feature adds one change to the haunting-engine: a per-client rate limit
 | Font loading with zero third-party requests | `next/font/google` self-hosts at build time but needs network during the build. `next/font/local` serves committed files. | Use `next/font/local` with committed `woff2` files (SIL OFL fonts). Builds work offline and the font origin is always the Frontend itself. |
 | Jest for Next.js | `next/jest` configures SWC transforms, CSS stubs and `.mjs` handling for Jest 29. | Use `next/jest` with `jest-environment-jsdom` and Jest 29.7.0. Type checking runs separately with `tsc --noEmit`. |
 
-Versions below are the intended pins and are confirmed at install time (see Open Questions): Next 14.2.5, React and React DOM 18.3.1, `socket.io-client` 4.7.5 (same as the engine's dev dependency), `tone` 14.7.77, TypeScript 5.5.3, Jest 29.7.0, fast-check 3.20.0, `@types/node` 20.14.10, `@testing-library/react` 16.0.0.
+Versions below are the intended pins; pins must be verified at install time with `npm view <pkg> version` (see Open Questions). Next is pinned to 14.2.35, the latest 14.2.x patch (checked on the npm registry), with React 18, because the app is public and later 14.2.x patches carry security fixes (Requirement 13.9). The other packages are: React and React DOM 18.3.1, `socket.io-client` 4.7.5 (same as the engine's dev dependency), `tone` 14.7.77, TypeScript 5.5.3, Jest 29.7.0, fast-check 3.20.0, `@types/node` 20.14.10, `@testing-library/react` 16.0.0.
 
 ## Architecture
 
@@ -370,7 +370,7 @@ The reducer is pure: time and page visibility come in on the action, never from 
 
 Rules:
 
-- **`connection: connect`**: set `connection = 'connected'`, `lostContactAtMs = null`, and discard the Stale_Snapshot and everything derived from it: `snapshot`, `anomalies`, `forecasts`, `chaosMarks`, `openIncidents`, `silenceUntilMs` are reset. `recentIncidents` is kept because the Engine cannot resend resolved incidents over Socket.IO (see Open Questions, item 2). The Engine then sends `cluster:snapshot` and `incident:list` immediately (`EventsGateway.handleConnection`).
+- **`connection: connect`**: set `connection = 'connected'`, `lostContactAtMs = null`, and discard the Stale_Snapshot and everything derived from it: `snapshot`, `anomalies`, `forecasts`, `chaosMarks`, `openIncidents`, `silenceUntilMs` are reset. `recentIncidents` is kept, because resolved incidents cannot be refetched over Socket.IO (Requirements 1.6 and 4.16; see Open Questions, item 2). Open incidents are replaced by the `incident:list` that follows. The Engine then sends `cluster:snapshot` and `incident:list` immediately (`EventsGateway.handleConnection`).
 - **`connection: connect_error | disconnect`**: `connection = 'lost_contact'`, `lostContactAtMs = atMs` (first time only), `anomalies = []`, `forecasts = []` (3.11). `snapshot` is kept only so the stale values can be dropped by the connect reset; selectors never display it while `lost_contact` (1.7). Incidents are kept (4.15).
 - **`snapshot`**: ignored if `state.snapshot` exists and `Date.parse(incoming.timestamp) < Date.parse(state.snapshot.timestamp)` (a late REST response must not overwrite a newer socket snapshot). Otherwise `snapshot = incoming`, `anomalies = incoming.anomalies`, and `forecasts = incoming.forecasts`. Applying the same snapshot twice yields an equal state (idempotence). If `pageVisible` and the previous snapshot has a service whose status was not `down` and the incoming one has it `down`, then `silenceUntilMs = nextSilenceUntil(atMs)`, one restart per snapshot however many services went down (6.11, 6.19). A first snapshot (no previous) never triggers a silence.
 - **`incident:list`**: `openIncidents = open` (4.1).
@@ -380,7 +380,7 @@ Rules:
 - **`forecast:warning`**: upsert by `service`; **`forecast:cleared`**: remove by `service` (3.9; the `reason` goes to the Ghost_Area, not to this state).
 - **`chaos:triggered`**: `chaosMarks[service] = { event, receivedAtMs }`.
 
-The Ghost_Area is a separate pure reducer (`ghostReducer`) outside `ClusterState`, so ghost history survives a reconnect.
+The Ghost_Area is a separate pure reducer (`ghostReducer`) outside `ClusterState`, so ghost history survives a reconnect, like Recent_Incidents.
 
 ### Selectors (`state/selectors.ts`)
 
@@ -634,15 +634,13 @@ Mapping rules, applied in this order:
    - `ambient = AMBIENT_BASE + (1 - AMBIENT_BASE) * clamp01(dread)`: non-decreasing, within [0, 1] (6.6).
    - `whispers = max latency badness` over services whose status is neither `unknown` nor `down`; 0 if none (6.7). `whisperRoom` is the first such service in chain order that reaches the maximum.
    - `screams = max errors badness` over all services; 0 for an empty list (6.8). `screamRoom` likewise.
-   - Heartbeat: see the decision below.
+   - Heartbeat: see "Heartbeat trigger" below.
 5. **Silence**: if `silenceUntilMs !== null && nowMs < silenceUntilMs`, `silence = true` and `ambient`, `whispers`, `screams`, `heartbeat.level`, `lostContactTone` are all 0 (the cue rooms and `state` are unchanged). When `nowMs >= silenceUntilMs` the layers resume at their mapped levels (6.11).
 6. **Sanitize last**: every number goes through `finite01` (non-finite becomes 0, clamp to [0, 1]); bpm is clamped to [40, 180] when level > 0 (6.10, 6.14).
 
-#### Decision: what turns the heartbeat on (Requirement 6, criterion 9)
+#### Heartbeat trigger (Requirement 6, criterion 9)
 
-Requirement 6.9 says the heartbeat plays while a service has an active Forecast_Countdown **or an `rssMb` that increased across the two most recent snapshots**, and is 0 otherwise. Taken literally, an RSS increase of any size, such as ordinary noise of 0.3 MB on a healthy 50 MB service, would start a heartbeat at the 40 bpm floor on a healthy cluster. That would sound like a fault when there is none.
-
-Decision: the heartbeat is active while **either** (a) some service has an active forecast (`warning` true, `timeToLimitSeconds` non-null), **or** (b) the highest `badness.memory` among services whose status is neither `unknown` nor `down` is above 0. Level and rate come from one drive value:
+Requirement 6.9 says the heartbeat plays WHILE any service has an active Forecast_Countdown or a memory `badness` above 0, and its level is 0 otherwise. The mapping implements exactly that. The heartbeat is active while **either** (a) some service has an active forecast (`warning` true, `timeToLimitSeconds` non-null), **or** (b) the highest `badness.memory` among services whose status is neither `unknown` nor `down` is above 0. Level and rate come from one drive value:
 
 ```
 memoryDrive   = max memory badness (eligible services)                 // 0..1
@@ -654,12 +652,7 @@ level         = drive                         (0 when neither trigger is active)
 bpm           = level > 0 ? HEARTBEAT_MIN_BPM + (HEARTBEAT_MAX_BPM - HEARTBEAT_MIN_BPM) * level : 0
 ```
 
-This keeps both halves of the requirement's rate rule (higher memory badness or shorter time to limit never gives a slower heartbeat) and uses the Engine's own badness thresholds (`MEMORY_OK_MB`) as the line between noise and a real rise. It differs from the requirement text in two ways, which I note here rather than editing the requirement:
-
-- an RSS rise with `badness.memory` equal to 0 and no forecast does **not** start the heartbeat (the requirement would);
-- `badness.memory > 0` with a flat RSS and no forecast **does** start it (the requirement would not). RSS above the OK threshold is already a memory problem worth hearing, and it also makes the state consistent if the forecast layer is warming up.
-
-Because this needs no previous snapshot, the mapping input is simpler and has no history to keep. If the requirement text should be changed to match, the suggested wording is: "WHILE any service has an active Forecast_Countdown or a memory badness above 0 ...".
+Higher memory badness or a shorter time to limit never gives a slower heartbeat. Using the Engine's own badness (which rises only above `MEMORY_OK_MB`) means ordinary RSS noise on a healthy service does not start a heartbeat. The mapping needs no previous snapshot, so the mapping input keeps no history.
 
 #### Cues (`deriveCues`)
 
@@ -1007,7 +1000,7 @@ Reflection on redundancy: the three "one effect per reading", "replace on snapsh
 
 ### Property 1: Connection loss and reconnect transitions
 
-For any `ClusterState` and any `connect_error` or `disconnect` action, the result has `connection = 'lost_contact'`, empty `anomalies` and `forecasts`, and unchanged `openIncidents` and `recentIncidents`. For any `ClusterState` and a `connect` action, the result has `connection = 'connected'`, no snapshot, no anomalies, no forecasts, no open incidents and no chaos marks, and `recentIncidents` equal to the input's. For any sequence of connection events, `connecting` never reappears after the first failure.
+For any `ClusterState` and any `connect_error` or `disconnect` action, the result has `connection = 'lost_contact'`, empty `anomalies` and `forecasts`, and unchanged `openIncidents` and `recentIncidents`. For any `ClusterState` and a `connect` action, the result has `connection = 'connected'`, no snapshot, no anomalies, no forecasts, no open incidents and no chaos marks, and `recentIncidents` equal to the input's (kept because resolved incidents cannot be refetched); a following `incident:list` then replaces the open incidents. For any sequence of connection events, `connecting` never reappears after the first failure.
 
 **Validates: Requirements 1.4, 1.5, 1.6, 3.11, 4.15**
 
@@ -1327,12 +1320,16 @@ The first five return `502`, the sixth `429` with a `Retry-After` header. Invali
 
 ```bash
 cd haunted-house && npm ci
+npm run typecheck && npm test                                  # exit 0 (Jest runs through next/jest, which does not type-check)
 NEXT_PUBLIC_ENGINE_URL=http://localhost:4000 npm run build     # exit 0
 NEXT_PUBLIC_ENGINE_URL=http://localhost:4000 npm run start     # separate terminal; waits for "Ready"
 curl -fsS -m 10 http://localhost:3100/api/health               # {"status":"ok","service":"haunted-house"}
 curl -fsS -m 10 -o /dev/null -w '%{http_code}\n' http://localhost:3100/   # 200
 npm run build   # with NEXT_PUBLIC_ENGINE_URL unset: must exit non-zero, name the variable, leave no .next
+npm audit --omit=dev                                           # exit 0: no high or critical findings (15.8)
 ```
+
+If `npm audit --omit=dev` reports a high or critical finding, the milestone is not complete (15.13). The first remedy is a newer 14.2.x patch of Next, then a patched version of the affected package; a finding is never silenced by dropping the check.
 
 **3. Full stack:**
 
@@ -1346,21 +1343,35 @@ node haunted-house/scripts/probe-snapshot.mjs http://localhost:4000   # waits <=
 
 ### Verification not covered by automation
 
-Layout at 320, 768, 1200 and 1920 px (no horizontal scroll, no clipped text or buttons, side-by-side then wrap, single column below 768 px), the look of the five Room statuses in both themes, and the sound itself are checked by hand at each frontend milestone. Full WCAG validation needs manual testing with assistive technologies and an expert accessibility review; the automated contrast and keyboard checks here cover only part of it.
+Layout at 320, 768, 1200 and 1920 px (no horizontal scroll, no clipped text or buttons, side-by-side then wrap, single column below 768 px), the look of the five Room statuses in both themes, and the sound itself are checked by hand at each frontend milestone.
+
+**Manual sound check (15.12), in Chrome, Firefox and Safari.** Safari is the strictest about starting an audio context and about autoplay, so it is the browser most likely to fail. In each browser: open the page, confirm "sound off" is shown and no sound plays; activate "enable sound" with a click and with the keyboard; trigger chaos (latency, errors, memory leak, crash) and confirm each of the five Audio_Layers is heard (ambient, whispers, screams, heartbeat, and the lost-contact tone by stopping the engine); activate the Mute_Control and confirm silence within 300 ms and recovery; switch to another tab and back and confirm no stale silence plays. Record browser versions in the milestone notes. In Safari also check that the first click starts sound without a second click, which tests the dynamic `import('tone')` inside the gesture handler.
+
+**Deployment check of the Client_Key (14.14).** With `TRUST_PROXY=true` behind a Cloudflare Tunnel, the rate-limit Client_Key is verified once on the live deployment, because tests cannot reproduce Cloudflare's header behaviour. The check is done with `CHAOS_RATE_LIMIT_MAX=5` and a 60 s window, and it passes only if all three steps pass:
+
+1. *Known client is limited by its own address.* From network A (for example the home connection), send 6 `POST <public-engine-url>/api/chaos/gateway/reset` requests with `curl -s -o /dev/null -w '%{http_code}\n'`. Expect five non-429 codes, then 429 with a `Retry-After` header.
+2. *Two clients do not share a key.* While A is limited, send one request from network B (for example a phone on mobile data). Expect a non-429 code. If B gets 429, every visitor shares one key (the key is the Cloudflare edge or tunnel address), and `TRUST_PROXY` or the hop count is wrong. Then repeat from A after the window ends to confirm A's allowance returns.
+3. *A spoofed `X-Forwarded-For` does not change the key.* From limited network A, send one request with `-H 'X-Forwarded-For: 203.0.113.77'`. Expect 429 still. If it is accepted, the key is taken from a client-controlled value.
+
+To see the key itself, temporarily log `req.ip` once per request in `ChaosRateLimitGuard` (a single `Logger.debug` line, removed after the check) and confirm that the logged address from network A equals A's public address (`curl -s https://ifconfig.me` from A) and differs from B's. Do not leave the log line in the code. If the check fails, set `TRUST_PROXY=false` (limits then become per tunnel address, which is safe but shared) and revisit the proxy hop count before going public.
+
+Full WCAG validation needs manual testing with assistive technologies and an expert accessibility review; the automated contrast and keyboard checks here cover only part of it.
 
 ## Open Questions and Risks
 
-1. **Heartbeat trigger differs from Requirement 6.9 (decided, needs your OK).** The design starts the heartbeat on an active forecast or memory badness above 0, not on any RSS increase between two snapshots (see the decision under Audio_Mapping). If you want the requirement text aligned, the suggested wording is: "WHILE any service has an active Forecast_Countdown or a memory badness above 0".
-2. **Reconnect versus Requirement 4.16.** Requirement 1.6 says reconnect replaces the entire Cluster_State, and 4.15/4.16 imply incidents survive the loss. The design clears open incidents on reconnect (the Engine immediately resends `incident:list`) and keeps `recentIncidents`, because resolved incidents cannot be refetched over Socket.IO and the requirements exclude `GET /api/incidents`. After a reconnect, Recent_Incidents therefore shows pre-loss history. If you want a clean slate, say so; the cost is an empty history after every reconnect.
-3. **Scene is composed from SVG parts, with HTML text.** Requirement 12.1 says the Haunted_Scene is inline SVG. Metrics, labels and buttons are real HTML elements over SVG facades so they stay accessible, keyboard-operable and wrap without clipping. One monolithic `<svg>` with `foreignObject` would break reflow at narrow widths.
-4. **No retry jitter.** `randomizationFactor: 0` makes the first retry exactly 1 s as the requirement says. Many tabs reconnecting after an engine restart will do so in lockstep; acceptable for a demo.
-5. **`TRUST_PROXY=true` without a proxy is a bypass.** A client can then set `X-Forwarded-For` itself. The `.env.example` says so. The default is `false`.
-6. **Limiter state is in memory.** It resets on engine restart and is not shared between instances. Fine for the single-instance demo; a shared store would be needed if the engine is scaled out.
-7. **Invalid-request floods are not limited.** Because 400 and 404 responses are refunded (Requirement 9.12), a client can send unlimited invalid requests. They are cheap to reject and never reach a victim service, but they do cost the Engine CPU. The 404 for an unknown service is refunded too; Requirement 9.12 mentions only 400.
-8. **"Page receives a snapshot" (15.10) is checked by a Node probe plus a manual look.** A real browser check would need Playwright, which this design avoids adding. Tell me if you want it.
-9. **Fonts are committed binaries.** Creepster and Inter `woff2` files (SIL OFL) must be downloaded once and committed to `app/fonts/` with their licence text. Creepster is hard to read at small sizes, so it is limited to short headings.
-10. **Tone.js dynamic import and the user gesture.** `import('tone')` inside the click handler adds a small delay before `Tone.start()`. Browsers keep transient user activation for several seconds, so this should hold; Safari is the one to test. The context-count test uses a fake Tone module, so it proves we never load Tone early, not what a real browser does.
-11. **Pinned versions are not yet verified against the registry.** Next 14.2.5, React 18.3.1, `tone` 14.7.77, `socket.io-client` 4.7.5 and `@testing-library/react` 16.0.0 are chosen for compatibility with Node 20 and the engine's Socket.IO 4.7; confirm at install time. Jest runs through `next/jest` (SWC), so type errors are caught by `npm run typecheck`, not by the test run; `typecheck` is part of each milestone's gate.
-12. **Attribution after fast restarts.** The Engine can miss an outage or blame orders or gateway after a fast payments restart (roadmap.md). The UI shows "suspected root", the restart caveat, and never states a cause as fact; the ghost messages use "suspect" or "may". `timeToLimit` is always shown as "~N s (est.)"; the Engine's countdown ends about 3 s before the real crash.
-13. **Reset-all makes three victim calls but counts once.** One visitor can therefore reset the whole cluster for one slot, as the requirement asks.
-14. **`.dockerignore` change.** Removing `haunted-house` from the root `.dockerignore` makes the frontend folder part of the engine's build context (it is not copied into the engine image). Build context transfer gets slightly larger; `**/.next` and `**/node_modules` stay ignored.
+All items are decided as of 2026-11-13. None remains open.
+
+1. **Heartbeat trigger.** Decided 2026-11-13. Requirement 6.9 now reads "WHILE any service has an active Forecast_Countdown or a memory badness above 0", and the design implements exactly that (see "Heartbeat trigger" under Audio_Mapping). An RSS rise with memory badness 0 and no forecast does not start the heartbeat.
+2. **Reconnect and Recent_Incidents.** Decided 2026-11-13. Requirements 1.6 and 4.16 say a reconnect replaces the Cluster_State except the Recent_Incidents, which are kept because resolved incidents cannot be refetched over Socket.IO (and `GET /api/incidents` is out of scope). Open incidents are replaced by the `incident:list` the Engine sends on connection. After a reconnect, Recent_Incidents therefore shows pre-loss history.
+3. **Scene is composed from SVG parts, with HTML text.** Decided 2026-11-13. Requirement 12.1 says the Haunted_Scene is inline SVG. Metrics, labels and buttons are real HTML elements over SVG facades so they stay accessible, keyboard-operable and wrap without clipping. One monolithic `<svg>` with `foreignObject` would break reflow at narrow widths.
+4. **No retry jitter.** Decided 2026-11-13. `randomizationFactor: 0` makes the first retry exactly 1 s as the requirement says. Many tabs reconnecting after an engine restart will do so in lockstep; acceptable for a demo.
+5. **`TRUST_PROXY=true` without a proxy is a bypass.** Decided 2026-11-13. A client can then set `X-Forwarded-For` itself. The `.env.example` says so. The default is `false`. On the live deployment behind a Cloudflare Tunnel, the Client_Key is verified once (Requirement 14.14; steps under "Deployment check of the Client_Key" in the Testing Strategy).
+6. **Limiter state is in memory.** Decided 2026-11-13. It resets on engine restart and is not shared between instances. Fine for the single-instance demo; a shared store would be needed if the engine is scaled out.
+7. **Invalid-request floods are not limited.** Decided 2026-11-13. Because 400 and 404 responses are refunded (Requirement 9.12), a client can send unlimited invalid requests. They are cheap to reject and never reach a victim service, but they do cost the Engine CPU. The 404 for an unknown service is refunded too; Requirement 9.12 mentions only 400.
+8. **"Page receives a snapshot" (15.10) is checked by a Node probe plus a manual look.** Decided 2026-11-13. A real browser check would need Playwright, which this design avoids adding.
+9. **Fonts are committed binaries.** Decided 2026-11-13. Creepster and Inter `woff2` files (SIL OFL) must be downloaded once and committed to `app/fonts/` with their licence text. Creepster is hard to read at small sizes, so it is limited to short headings.
+10. **Tone.js dynamic import and the user gesture.** Decided 2026-11-13. `import('tone')` inside the click handler adds a small delay before `Tone.start()`. Browsers keep transient user activation for several seconds, so this should hold. Safari is stricter, so the manual sound check (Requirement 15.12) covers Chrome, Firefox and Safari. The context-count test uses a fake Tone module, so it proves we never load Tone early, not what a real browser does.
+11. **Next.js pin and other package pins.** Decided 2026-11-13. Next.js is pinned to 14.2.35, the latest 14.2.x patch (checked on the npm registry), with React 18, because the app is public and later patches carry security fixes (Requirement 13.9). `npm audit --omit=dev` with no high or critical findings is part of the frontend real-boot checks (Requirement 15.8). The other pins (React 18.3.1, `tone` 14.7.77, `socket.io-client` 4.7.5, `@testing-library/react` 16.0.0) were not re-checked against the registry; they must be verified at install time. Jest runs through `next/jest` (SWC), so type errors are caught by `npm run typecheck`, not by the test run; `typecheck` is part of each milestone's gate.
+12. **Attribution after fast restarts.** Decided 2026-11-13. The Engine can miss an outage or blame orders or gateway after a fast payments restart (roadmap.md). The UI shows "suspected root", the restart caveat, and never states a cause as fact; the ghost messages use "suspect" or "may". `timeToLimit` is always shown as "~N s (est.)"; the Engine's countdown ends about 3 s before the real crash.
+13. **Reset-all makes three victim calls but counts once.** Decided 2026-11-13. One visitor can therefore reset the whole cluster for one slot, as the requirement asks.
+14. **`.dockerignore` change.** Decided 2026-11-13. Removing `haunted-house` from the root `.dockerignore` makes the frontend folder part of the engine's build context (it is not copied into the engine image). Build context transfer gets slightly larger; `**/.next` and `**/node_modules` stay ignored.
