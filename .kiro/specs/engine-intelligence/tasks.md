@@ -362,16 +362,16 @@ Tasks 1 and 3 to 6 cover shared types, configuration and the pure functions, and
   - Ensure all tests pass, ask the user if questions arise.
   - _Requirements: R13.2, R13.3, R13.5, R13.6_
 
-- [ ] 13. Add the memory-leak lead-time integration test
-  - [ ] 13.1 Create `haunting-engine/test/leak-lead-time.ts` with the test logic
+- [x] 13. Add the memory-leak lead-time integration test
+  - [x] 13.1 Create `haunting-engine/test/leak-lead-time.ts` with the test logic
     - Pure helpers: `parseIntegrationSettings(env)` for `INTEGRATION_LEAK_TIMEOUT_SECONDS` (default 300) and `INTEGRATION_MIN_LEAD_SECONDS` (default 10), each matching `/^[1-9]\d*$/` and otherwise throwing an error naming the variable; `isCrashSnapshot(snapshot, maxRssSeen, limitMb, restartDropMb)` with three signals (payments `down`, payments RSS at or above the limit, RSS more than `FORECAST_RESTART_DROP_MB` below the maximum seen in this run); `computeLeadSeconds(warningTs, crashTs)`.
     - _Requirements: R14.4, R14.5, R14.6, R14.11_
 
-  - [ ] 13.2 Write tests for the helpers in `haunting-engine/test/leak-lead-time.e2e-spec.ts`
+  - [x] 13.2 Write tests for the helpers in `haunting-engine/test/leak-lead-time.e2e-spec.ts`
     - They need no running stack. Cover defaults, valid overrides, rejection of `0`, `-1`, `1.5`, `abc` with the variable named, each of the three crash signals, no crash signal on a small RSS fall, and the lead computation.
     - _Requirements: R14.4, R14.5, R14.11_
 
-  - [ ] 13.3 Create `haunting-engine/test/memory-leak-forecast.e2e-spec.ts`
+  - [x] 13.3 Create `haunting-engine/test/memory-leak-forecast.e2e-spec.ts`
     - Reuse `connect`, `postJson`, `resetAllChaos`, `waitForNoOpenIncidents` and `ENGINE_URL` from `helpers.ts`. Set the per-test timeout to `(INTEGRATION_LEAK_TIMEOUT_SECONDS + 60) × 1000` ms.
     - Flow: parse settings first and fail before any chaos on a bad value; `GET /health` on the engine and, if the stack is absent, log that the full stack is required and return from every test with no chaos injected and no cleanup; `resetAllChaos()`, `waitForNoOpenIncidents()` and wait until payments is `healthy` with no payments warning; connect a Socket.IO client; `POST /api/chaos/payments/memory-leak` with `{ enabled: true }`.
     - Poll `GET /api/snapshot` every 1 s, skipping an already seen `timestamp`. Record the warning time (first snapshot whose `forecasts` has a payments entry with `warning: true`) and the crash time (first snapshot satisfying `isCrashSnapshot`), tracking the maximum payments RSS. Stop at the crash or after the timeout.
@@ -380,17 +380,17 @@ Tasks 1 and 3 to 6 cover shared types, configuration and the pure functions, and
     - `afterAll`, whenever chaos was injected: `resetAllChaos()` in a `finally`, close the socket, and `waitForNoOpenIncidents()`.
     - _Requirements: R14.1, R14.2, R14.3, R14.4, R14.5, R14.6, R14.8, R14.9, R14.10, R14.11, R14.12, R14.13, R6.3, R6.7_
 
-- [ ] 14. Final checkpoint - Full stack run, measured lead time and roadmap
-  - [ ] 14.1 Run the full stack and the integration test
+- [x] 14. Final checkpoint - Full stack run, measured lead time and roadmap
+  - [x] 14.1 Run the full stack and the integration test
     - Run `docker compose up --build`, then `npm run test:e2e` in `haunting-engine/`. Also run the full unit suites in `haunting-engine/` and `victim-app/`. Note the printed warning time, crash time, lead time and leak rate.
     - _Requirements: R13.5, R14.6_
 
-  - [ ] 14.2 Record the measured lead time in `.kiro/specs/engine-intelligence/design.md`
+  - [x] 14.2 Record the measured lead time in `.kiro/specs/engine-intelligence/design.md`
     - Replace the "_not yet measured_" line under "Measured lead time (R14.7)" with `lead = <seconds> s, compared with INTEGRATION_MIN_LEAD_SECONDS = <value>`, with the date, the leak rate, and the warning and crash timestamps from the test output.
     - Update the "Assessment: known open issue" section only if a measurement changes a conclusion or its stated basis; otherwise leave it as it is.
     - _Requirements: R14.7, R16.1, R16.3_
 
-  - [ ] 14.3 Update `.kiro/steering/roadmap.md`
+  - [x] 14.3 Update `.kiro/steering/roadmap.md`
     - Move `engine-intelligence` to Done, make `haunted-house` the next phase, and keep the "Known open issues" entry open (R16.4, R16.5).
     - _Requirements: R16.4_
 

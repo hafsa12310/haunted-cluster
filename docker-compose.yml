@@ -48,10 +48,15 @@ services:
     ports:
       - "3002:3002"
     restart: unless-stopped
-    mem_limit: 256m
+    mem_limit: ${PAYMENTS_MEM_LIMIT:-256m}
+    # Equal to mem_limit: no swap, so the leak ends in a real OOM kill and restart
+    # instead of being paged out below the limit.
+    memswap_limit: ${PAYMENTS_MEM_LIMIT:-256m}
+    # CHAOS_TTL_SECONDS is longer than on the other services: the leak must outlive
+    # the ~110 s it needs to reach the OOM kill at 2 MB/s, or the TTL frees it first.
     environment:
       PORT: 3002
-      CHAOS_TTL_SECONDS: 120
+      CHAOS_TTL_SECONDS: ${PAYMENTS_CHAOS_TTL_SECONDS:-240}
       LEAK_MB_PER_SECOND: ${LEAK_MB_PER_SECOND:-2}
       MEMORY_GAUGE_INTERVAL_MS: ${MEMORY_GAUGE_INTERVAL_MS:-1000}
     healthcheck:

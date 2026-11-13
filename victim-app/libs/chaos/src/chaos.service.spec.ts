@@ -204,7 +204,9 @@ describe('ChaosService unit tests', () => {
 
   describe('enableMemoryLeak() real memory growth', () => {
     const ONE_MB_BYTES = 1_048_576;
-    const LEAK_MB_PER_SECOND = 10;
+    // Large enough that pages freed by earlier tests and reused by the allocator
+    // cannot account for more than half of the nominal growth.
+    const LEAK_MB_PER_SECOND = 40;
     const TICKS = 3;
     let leakService: ChaosService;
 

@@ -895,6 +895,92 @@
         "chatSessionId": "sess_f8e47e9b-f930-4e73-802f-929a3a38ff71",
         "timestamp": 1794496757740
       }
+    ],
+    "13.1 Create `haunting-engine/test/leak-lead-time.ts` with the test logic": [
+      {
+        "executionId": "e7da1456-1839-4c37-b5e9-0961ac5f1160",
+        "chatSessionId": "sess_4ffed8c0-a8e4-4f87-9b38-0a17fdfb1c04",
+        "timestamp": 1794544739401
+      },
+      {
+        "executionId": "e7da1456-1839-4c37-b5e9-0961ac5f1160",
+        "chatSessionId": "sess_4ffed8c0-a8e4-4f87-9b38-0a17fdfb1c04",
+        "timestamp": 1794544800239
+      }
+    ],
+    "13.2 Write tests for the helpers in `haunting-engine/test/leak-lead-time.e2e-spec.ts`": [
+      {
+        "executionId": "7fc13b86-9474-4cbd-ad86-ba1f0e744545",
+        "chatSessionId": "sess_284d883f-9019-47d8-b9d9-41691c74348a",
+        "timestamp": 1794544907941
+      },
+      {
+        "executionId": "7fc13b86-9474-4cbd-ad86-ba1f0e744545",
+        "chatSessionId": "sess_284d883f-9019-47d8-b9d9-41691c74348a",
+        "timestamp": 1794544936435
+      }
+    ],
+    "13.3 Create `haunting-engine/test/memory-leak-forecast.e2e-spec.ts`": [
+      {
+        "executionId": "39753be6-30b3-4447-8e5f-3428fa1d0c71",
+        "chatSessionId": "sess_5bfd6545-6b60-4ec5-91a1-5bdd7b45d41e",
+        "timestamp": 1794544956188
+      },
+      {
+        "executionId": "39753be6-30b3-4447-8e5f-3428fa1d0c71",
+        "chatSessionId": "sess_5bfd6545-6b60-4ec5-91a1-5bdd7b45d41e",
+        "timestamp": 1794545032986
+      }
+    ],
+    "13. Add the memory-leak lead-time integration test": [
+      {
+        "executionId": "39753be6-30b3-4447-8e5f-3428fa1d0c71",
+        "chatSessionId": "sess_5bfd6545-6b60-4ec5-91a1-5bdd7b45d41e",
+        "timestamp": 1794545033024
+      }
+    ],
+    "14.1 Run the full stack and the integration test": [
+      {
+        "executionId": "7af20fb1-012f-4399-96c9-9790ddbbb19f",
+        "chatSessionId": "sess_b2e73670-85b2-421a-871f-34242ab5bc61",
+        "timestamp": 1794545065979
+      },
+      {
+        "executionId": "355e5937-9863-4ae5-928e-e100d4f6b8d3",
+        "chatSessionId": "sess_b2e73670-85b2-421a-871f-34242ab5bc61",
+        "timestamp": 1794552883474
+      }
+    ],
+    "14.2 Record the measured lead time in `.kiro/specs/engine-intelligence/design.md`": [
+      {
+        "executionId": "4f14d5e7-9479-4230-a386-d910acb0aacf",
+        "chatSessionId": "sess_b2e73670-85b2-421a-871f-34242ab5bc61",
+        "timestamp": 1794553228040
+      },
+      {
+        "executionId": "4f14d5e7-9479-4230-a386-d910acb0aacf",
+        "chatSessionId": "sess_b2e73670-85b2-421a-871f-34242ab5bc61",
+        "timestamp": 1794553331820
+      }
+    ],
+    "14.3 Update `.kiro/steering/roadmap.md`": [
+      {
+        "executionId": "4f14d5e7-9479-4230-a386-d910acb0aacf",
+        "chatSessionId": "sess_b2e73670-85b2-421a-871f-34242ab5bc61",
+        "timestamp": 1794553228086
+      },
+      {
+        "executionId": "4f14d5e7-9479-4230-a386-d910acb0aacf",
+        "chatSessionId": "sess_b2e73670-85b2-421a-871f-34242ab5bc61",
+        "timestamp": 1794553332325
+      }
+    ],
+    "14. Final checkpoint - Full stack run, measured lead time and roadmap": [
+      {
+        "executionId": "4f14d5e7-9479-4230-a386-d910acb0aacf",
+        "chatSessionId": "sess_b2e73670-85b2-421a-871f-34242ab5bc61",
+        "timestamp": 1794553332361
+      }
     ]
   }
 }

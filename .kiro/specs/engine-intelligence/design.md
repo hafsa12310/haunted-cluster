@@ -33,7 +33,7 @@ With this leak the engine would never see RSS rise, no forecast could appear, an
 
 **F1 verification (task 2.4).** After the `Buffer.alloc(1 MiB, 1)` fix, on the rebuilt stack at `LEAK_MB_PER_SECOND` = 2 (compose default), 2026-11-11 18:01:49 PKT (13:01:49Z). Method: `GET /api/snapshot` on the haunting-engine (`services[payments].signals.rssMb`), 11 samples about 2 s apart over 20 s, leak enabled through `POST /api/chaos/payments/memory-leak {"enabled":true}` only, then `POST /api/chaos/reset-all`. RSS rose from 73.16 MB to 104.51 MB (+31.4 MB); least-squares slope 1.75 MB/s, R² 0.945. The snapshot is a staircase (the value changes about every 4 s, matching the Prometheus scrape cadence), which adds noise and lowers the fitted slope over a short window; the endpoint-to-endpoint rise is consistent with about 2 MB/s. Verdict: RSS now grows at roughly the nominal rate, so F1 is fixed.
 
-**F2. A crash caused by the container memory limit is hard to observe through Requirement 14, Criterion 4.** The container limit is 256 MiB (`mem_limit: 256m`, cgroup `memory.max` = 268435456, confirmed in the payments container). The kernel kills the container when the whole cgroup reaches that limit, so process RSS never reaches `MEMORY_LIMIT_MB` = 256 in a sample. The only observable evidence is `up` equal to false or a large RSS drop after the restart. Earlier measurements already showed that a 1 to 3 s restart is missed by a 2 s scrape in 2 of 5 cases (haunting-engine design, Open Question 1). Requirement 14, Criterion 4 therefore includes a third crash signal, an RSS fall of more than `FORECAST_RESTART_DROP_MB` below the maximum RSS seen in the run (see "Integration test design").
+**F2. A crash caused by the container memory limit is hard to observe through Requirement 14, Criterion 4.** The container limit is 256 MiB (`mem_limit: 256m`, cgroup `memory.max` = 268435456, confirmed in the payments container). The kernel kills the container when the whole cgroup reaches that limit, so process RSS never reaches `MEMORY_LIMIT_MB` = 256 in a sample. The final run showed why: the Node process RSS reads about 40 MB above what the cgroup counts against the limit, and the kernel kill happened at RSS of about 296 MB (cgroup about 253 MiB), not at 245 to 255 MB as first estimated. Because the kill happens above 256 MB of RSS, an "RSS at or above the limit" signal would fire before the kill and give a false crash, so it is not a crash signal. The only observable evidence is `up` equal to false or a large RSS drop after the restart. Earlier measurements already showed that a 1 to 3 s restart is missed by a 2 s scrape in 2 of 5 cases (haunting-engine design, Open Question 1). Requirement 14, Criterion 4 therefore uses two crash signals: payments `down`, or an RSS fall of more than `FORECAST_RESTART_DROP_MB` below the maximum RSS seen in the run (see "Integration test design"). The test helper is `isRestartSnapshot`.
 
 ---
 
@@ -804,7 +804,7 @@ INTEGRATION_MIN_LEAD_SECONDS=10
       SIMILARITY_DURATION_CAP_SECONDS: ${SIMILARITY_DURATION_CAP_SECONDS:-300}
 ```
 
-and for each of `gateway`, `orders`, `payments`, the two lines `LEAK_MB_PER_SECOND: ${LEAK_MB_PER_SECOND:-2}` (replacing `5`) and `MEMORY_GAUGE_INTERVAL_MS: ${MEMORY_GAUGE_INTERVAL_MS:-1000}`. `mem_limit`, healthchecks and `CHAOS_TTL_SECONDS` stay as they are.
+and for each of `gateway`, `orders`, `payments`, the two lines `LEAK_MB_PER_SECOND: ${LEAK_MB_PER_SECOND:-2}` (replacing `5`) and `MEMORY_GAUGE_INTERVAL_MS: ${MEMORY_GAUGE_INTERVAL_MS:-1000}`. `mem_limit`, healthchecks and `CHAOS_TTL_SECONDS` stay as they are in this design. The final checkpoint later changed payments only: `mem_limit` and `memswap_limit` are `${PAYMENTS_MEM_LIMIT:-256m}` and `CHAOS_TTL_SECONDS` is `${PAYMENTS_CHAOS_TTL_SECONDS:-240}` (see "Measured lead time").
 
 ### REST and snapshot shape
 
@@ -1128,7 +1128,7 @@ File: `haunting-engine/test/memory-leak-forecast.e2e-spec.ts`, run by `npm run t
 4. **Inject.** `POST /api/chaos/payments/memory-leak {enabled: true}`.
 5. **Observe.** Every 1 s `GET /api/snapshot`, skipping a snapshot whose `timestamp` was already seen. Track the maximum payments RSS seen. Until `INTEGRATION_LEAK_TIMEOUT_SECONDS` elapses:
    - **Warning time** is the `timestamp` of the first snapshot whose `forecasts` has a payments entry with `warning: true` (R14.3).
-   - **Crash time** is the `timestamp` of the first snapshot where payments is `down`, or payments RSS ≥ `MEMORY_LIMIT_MB` (256), or payments RSS has fallen more than 20 MB (the default `FORECAST_RESTART_DROP_MB`) below the maximum RSS seen in this run (R14.4; the third signal is explained in F2). Observation stops at the crash time.
+   - **Crash time** is the `timestamp` of the first snapshot where `isRestartSnapshot` holds: payments is `down`, or payments RSS has fallen more than 20 MB (the default `FORECAST_RESTART_DROP_MB`) below the maximum RSS seen in this run (R14.4; explained in F2). RSS at or above `MEMORY_LIMIT_MB` is not a crash signal. Observation stops at the crash time.
 6. **Assert.**
    - Crash seen: the warning time must exist (else fail "no forecast warning was observed", R14.9) and be earlier than the crash time (R14.5); lead = crash − warning in seconds, printed with `INTEGRATION_MIN_LEAD_SECONDS` (R14.6); a lead below the minimum fails with lead, warning time, crash time and minimum (R14.10).
    - No crash by the timeout: assert only that a warning was observed, print "no crash occurred", skip the lead assertions (R14.8).
@@ -1152,12 +1152,12 @@ Inputs, all from the repository except the sample age, which is derived:
 | Sample age in a Poll | 0 to 3 s (gauge up to 1 s plus scrape up to 2 s) | derived |
 | Window / min samples | 15 Polls (28 s span) / 5 | R11.1 |
 | Warn when | time to limit below 60 s, R² ≥ 0.8, slope > 0.05 MB/s | R11.1 |
-| Chaos TTL | 120 s | compose |
+| Chaos TTL | 240 s for payments (was 120 s; see "Measured lead time") | compose |
 
 Derivation:
 
 - **When the warning fires.** The warning needs time to limit below 60 s. At 2 MB/s that is a headroom below 120 MB, so RSS above about 136 MB, which is a leak age of (136 − 85) / 2 = 25.5 s. Add the sample age (about 1.5 s on average) and the fact that the first part of the window is still flat (a hockey-stick fit underestimates the slope, which delays the warning). The minimum-samples rule is not the limit: 5 Polls are available about 8 s after the leak starts. A throwaway simulation of 500 random phase alignments (gauge, scrape and Poll phases, ±0.3 MB noise, implemented in a scratch script that is not committed) put the warning at 26.6 to 31.6 s after the leak starts, median 29 s.
-- **When the crash happens.** The kernel kills the container at the cgroup limit. Process RSS plus kernel and file cache reach 256 MiB when RSS is about 245 to 255 MB, so the kill is at (250 − 85) / 2 = 82.5 s (77.5 s at RSS 240). That is before the 120 s chaos TTL, so the leak is still running.
+- **When the crash happens.** The kernel kills the container at the cgroup limit. Node process RSS reads about 40 MB above what the cgroup counts, so the cgroup reaches its limit (about 253 MiB) when RSS is about 296 MB. At 2 MB/s from about 85 MB the kill is at (296 − 85) / 2 = 105 s. That is too close to the original 120 s chaos TTL, and without `memswap_limit` swap absorbed the leak (see "Measured lead time"). The payments chaos TTL is now 240 s.
 - **When the test sees it.** A restart takes 1 to 3 s and the next Poll lands up to 2 s later, so the crash is visible 2 to 5 s after the kill, as `down` or as an RSS drop to about 70 to 85 MB, which is a fall of more than 150 MB and well above 20 MB.
 - **Lead time.** Simulated (crash seen at the first Poll after the kill): minimum 52 s, 5th percentile 54 s, median 54 s, maximum 58 s for a kill at 250 MB, and 48 to 52 s for a kill at 240 MB. Allowing 5 s of restart delay, the expected lead is about **43 to 53 s**, and the theoretical ceiling is the 60 s warning horizon. That is more than four times `INTEGRATION_MIN_LEAD_SECONDS` = 10, so the numbers work.
 
@@ -1175,18 +1175,34 @@ Sensitivity (same simulation, kill at 250 MB):
 | Problem | Effect | Fix |
 |---|---|---|
 | The current leak allocates no RSS (F1) | RSS never rises, no warning, no crash: the test cannot pass at any rate | Allocate `Buffer.alloc(1 MiB, 1)` per unit. Required |
-| RSS never reaches `MEMORY_LIMIT_MB` in a sample (F2) | R14.4's RSS clause never triggers; the crash is seen only as `down` or not at all | Use the RSS-drop crash signal in the test (above), which R14.4 now includes |
+| The kill happens at RSS about 296 MB, and a sample never shows the cgroup limit (F2) | An "RSS at or above the limit" signal would fire early, and the crash is otherwise seen only as `down` | Use `down` or the RSS-drop signal (`isRestartSnapshot`), which is what R14.4 says |
 | About 2 of 5 short restarts show no `down` (haunting-engine design, Open Question 1) | With only `down` the test would fall into the "no crash" path after 300 s and silently skip the lead check | Same RSS-drop signal: the first Poll after the restart sees RSS back near 70 to 85 MB |
-| A leak rate at or below about 1.4 MB/s never kills the container before the 120 s TTL (threshold `(250 − 85) / 120`) | No crash, lead check skipped | Keep the 2 MB/s default; do not lower it without raising `CHAOS_TTL_SECONDS` |
-| Engine forecasts against 256 MB but the kill is at about 245 to 255 MB | Time to limit is over-estimated by (256 − RSS at kill) / slope, about 3 to 5 s at 2 MB/s | Accepted: inside the margin. Not worth a separate effective-limit setting |
+| A leak rate at or below about 0.9 MB/s never kills the container before the 240 s TTL (threshold `(296 − 85) / 240`) | No crash, lead check skipped | Keep the 2 MB/s default; do not lower it without raising `CHAOS_TTL_SECONDS` |
+| Engine compares RSS against 256 MB but the kill is at RSS about 296 MB (about 40 MB RSS-vs-cgroup offset) | Time to limit is under-estimated by (296 − 256) / slope, about 20 s at 2 MB/s, so warnings come early, not late | Accepted: the error is on the safe side and adds to the lead time. Not worth a separate effective-limit setting |
 | After the crash, the leak run waits up to 300 s even though the leak is freed at 120 s | If the container does not crash, the test idles for 300 s | Accepted for now; a lower `INTEGRATION_LEAK_TIMEOUT_SECONDS` can be set by the runner |
 | The RSS-drop signal marks the crash when it is first seen, not when it happened | Lead is over-estimated by the restart delay, at most about 5 s | Accepted: 43 to 53 s expected against a minimum of 10 s. The test output prints the warning and crash timestamps so the figure can be inspected |
 
-The estimates above are analysis, not measurement. The measured value is recorded at the final checkpoint.
+The estimates above are analysis, not measurement. They assumed a kill at RSS 240 to 250 MB; the measured kill was at about 296 MB (see "Measured lead time"), so the simulated crash times and the TTL comparisons in the sensitivity table are shifted later by about 20 s at 2 MB/s. The measured value is recorded below.
 
 ### Measured lead time (R14.7)
 
-Measured lead time: _not yet measured_. At the final checkpoint, replace this line with `lead = <seconds> s, compared with INTEGRATION_MIN_LEAD_SECONDS = <value>`, together with the date, the leak rate, and the warning and crash timestamps from the test output.
+lead = 78.136 s, compared with INTEGRATION_MIN_LEAD_SECONDS = 10 (final task 14.1 run, 2026-11-13).
+
+| Item | Measured value |
+|---|---|
+| Warning printed | 2026-11-13T06:09:21.226Z |
+| Kernel OOM kill (docker `oom` event, exit 137) | 06:10:36.77Z |
+| Crash seen by the test | 06:10:39.362Z |
+| Lead time (crash seen minus warning) | 78.136 s (minimum 10 s) |
+| Max payments RSS before the kill | 299.79 MB |
+| Leak rate | configured `LEAK_MB_PER_SECOND` = 2; measured about 1.93 MB/s (81.1 to 293.1 MB over 110 s) |
+| RSS at the kill vs cgroup | RSS about 296 MB, cgroup about 253 MiB: Node RSS reads about 40 MB above what the cgroup counts |
+| Engine limit | `MEMORY_LIMIT_MB` = 256, so `timeToLimitSeconds` is about 20 s pessimistic (warnings early, not late) |
+| Crash detection in the test | `isRestartSnapshot`: payments down, or an RSS drop larger than 20 MB (`FORECAST_RESTART_DROP_MB`) |
+
+The lead is longer than the 43 to 53 s estimated above because the kill came at RSS about 296 MB, not 245 to 255 MB, while the warning time followed the 256 MB limit.
+
+Root cause of the earlier missed runs: the payments container had no `memswap_limit`, so swap absorbed the leak and no kill came, and the 120 s chaos TTL freed the leak before the kill. Both are fixed in `docker-compose.yml`: payments `mem_limit` and `memswap_limit` are both `${PAYMENTS_MEM_LIMIT:-256m}`, and `CHAOS_TTL_SECONDS` is `${PAYMENTS_CHAOS_TTL_SECONDS:-240}`.
 
 ---
 
@@ -1243,7 +1259,7 @@ Neither layer fixes the issue and neither changes engine behavior for it. The is
 These points were earlier listed as open requirements inconsistencies. They are now resolved in `requirements.md` and are not open issues:
 
 - **Real leak memory:** R15.10 requires each leak unit to be real, touched memory (`Buffer.alloc` with a fill value, at least 1 MiB of RSS per unit), and R15.8 carves it out of "other Victim_App behavior unchanged".
-- **Crash signal:** R14.4 includes an RSS fall of more than `FORECAST_RESTART_DROP_MB` below the maximum RSS seen in the run, and R14.1 stops observing at the crash time.
+- **Crash signal:** R14.4 uses payments `down` or an RSS fall of more than `FORECAST_RESTART_DROP_MB` below the maximum RSS seen in the run, and R14.1 stops observing at the crash time.
 - **Stack not running:** R14.13 says the test logs the stack-required message and returns from each test, because Jest 29 has no runtime skip; R14.12 excepts that case.
 - **Open-time comparison:** R8.6 compares Comparison_Vectors (a new glossary term), R8.11 keeps the full final Feature_Vector, and R7.4 states the duration decision.
 - **No forecast without a fit:** R6.9 reports no Memory_Forecast when there is no Trend_Fit and no active Forecast_Warning, consistent with R6.13 and the glossary.
@@ -1274,7 +1290,7 @@ Renumbering in R4: the old R4.11 is split into R4.11 and R4.12, and the old R4.1
 - **Warm-up is 60 s of wall time.** 30 Polls at 2 s. After an engine restart (history and baselines are not persisted, out of scope) learned detection is off for a minute, and fixed thresholds apply.
 - **Warning is sticky.** Once active, a warning stays until the slope falls to 0.05 MB/s or the memory drops, even when R² falls or the time to limit grows. This is what R6.4 and R6.5 say; a slow leak can show a warning with a long time to limit.
 - **Poll timestamps, not sample timestamps.** Each RSS sample is stamped with the Poll time, but the value is up to 3 s old. The slope is unaffected by a constant lag; random lag adds noise that the R² gate absorbs (in the simulation the R² at the warning Poll had a median of 0.999 and a minimum of 0.80, so the gate is sometimes the limiting condition), and the time to limit is over-estimated by about the lag times the slope.
-- **Page cache and kernel memory count toward the cgroup limit.** Real kills happen a few MB before RSS reaches 256, so forecasts are slightly optimistic (see the timing table).
+- **Page cache and kernel memory count toward the cgroup limit.** Process RSS reads about 40 MB above the cgroup figure, so the real kill happens at RSS about 296 MB, after the Engine's 256 MB limit. Forecasts are therefore about 20 s pessimistic at 2 MB/s (warnings come early, not late); see "Measured lead time".
 - **`LEAK_MB_PER_SECOND` default differs between code (5) and compose (2).** R15.9 keeps the code default. Running a service outside compose gives the faster 5 MB/s leak.
 - **Test and spec churn.** Adding required fields to `ClusterSnapshot` and `Incident` touches many existing specs (listed in the testing strategy). They fail to compile until updated, which is the intended signal.
 - **The leak test takes about 90 to 100 s** of real time plus the clean-start wait, and leaves a payments incident that the cleanup waits out.
