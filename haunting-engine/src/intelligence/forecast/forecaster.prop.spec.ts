@@ -215,8 +215,31 @@ describe('forecaster properties', () => {
       }),
       { numRuns: NUM_RUNS },
     );
-    // Guard against a vacuous run: the generators must produce some warnings.
-    expect(warningsSeen).toBeGreaterThan(0);
+    // warningsSeen is informational only; non-vacuity is asserted deterministically below.
+    void warningsSeen;
+  });
+
+  it('Property 24 (non-vacuity): a steep noise-free rise under a lenient config always starts a warning', () => {
+    fc.assert(
+      fc.property(
+        configArb.map((c) => ({ ...c, minR2: Math.min(c.minR2, 0.9), warnSeconds: 5000 })),
+        limitArb,
+        fc.double({ min: 5, max: 30, noNaN: true }),
+        fc.integer({ min: 20, max: 30 }),
+        (config, limit, slope, rises) => {
+          const seq: RssObservation[] = [];
+          for (let i = 0; i < rises; i++) {
+            seq.push({ service: SERVICE, now: 1000 * (i + 1), up: true, rssMb: 100 + slope * i });
+          }
+          let started = 0;
+          runSequence(seq, config, limit, (_p, _o, { event }) => {
+            if (event?.type === 'forecast:warning') started++;
+          });
+          expect(started).toBe(1);
+        },
+      ),
+      { numRuns: NUM_RUNS },
+    );
   });
 
   // Feature: engine-intelligence, Property 25: An active warning stays visible and silent
@@ -245,32 +268,87 @@ describe('forecaster properties', () => {
 
   // Feature: engine-intelligence, Property 26: Warnings clear with the right reason, once
   // **Validates: Requirements 6.5, 6.6, 6.7**
-  it('Property 26: warnings clear with the right reason and never when none was active', () => {
-    let clearsSeen = 0;
-    fc.assert(
-      fc.property(sequenceArb, configArb, limitArb, (seq, config, limit) => {
-        runSequence(seq, config, limit, (prev, obs, { state, event }) => {
-          if (!prev.warning) {
-            expect(event?.type).not.toBe('forecast:cleared');
-            return;
+  describe('Property 26: warnings clear with the right reason and never when none was active', () => {
+    /** Checks one step; returns 1 when a warning cleared on it, else 0. */
+    const checkStep = (
+      config: ForecastConfig,
+      prev: ServiceForecastState,
+      obs: RssObservation,
+      { state, event }: ReturnType<typeof stepForecast>,
+    ): number => {
+      if (!prev.warning) {
+        expect(event?.type).not.toBe('forecast:cleared');
+        return 0;
+      }
+      const fit = fitTrend(state.window, config.minSamples);
+      if (isMemoryDrop(prev, obs, config)) {
+        expect(event).toEqual({ type: 'forecast:cleared', service: SERVICE, reason: 'memory-dropped' });
+        expect(state.warning).toBe(false);
+        return 1;
+      }
+      if (fit !== null && fit.slopeMbPerSecond <= config.minSlopeMbPerS) {
+        expect(event).toEqual({ type: 'forecast:cleared', service: SERVICE, reason: 'stopped-rising' });
+        expect(state.warning).toBe(false);
+        return 1;
+      }
+      expect(event).toBeNull();
+      expect(state.warning).toBe(true);
+      return 0;
+    };
+
+    it('holds on arbitrary mixed sequences', () => {
+      fc.assert(
+        fc.property(sequenceArb, configArb, limitArb, (seq, config, limit) => {
+          runSequence(seq, config, limit, (prev, obs, result) => {
+            checkStep(config, prev, obs, result);
+          });
+        }),
+        { numRuns: NUM_RUNS },
+      );
+    });
+
+    /**
+     * Sequences that always warn, then always end the warning: a noise-free steep
+     * rise under a config that accepts it, followed by a down poll or a big drop.
+     */
+    const warnThenClearArb = fc.record({
+      config: configArb.map((c) => ({ ...c, minR2: Math.min(c.minR2, 0.9), warnSeconds: 5000 })),
+      limit: limitArb,
+      slope: fc.double({ min: 5, max: 30, noNaN: true }),
+      start: fc.double({ min: 50, max: 500, noNaN: true }),
+      rises: fc.integer({ min: 20, max: 30 }),
+      ending: fc.constantFrom('down', 'drop'),
+    });
+
+    it('exercises at least one clear on every run of warn-then-end sequences', () => {
+      fc.assert(
+        fc.property(warnThenClearArb, ({ config, limit, slope, start, rises, ending }) => {
+          const seq: RssObservation[] = [];
+          let now = 1_000;
+          let rss = start;
+          for (let i = 0; i < rises; i++) {
+            now += 1000;
+            rss += slope;
+            seq.push({ service: SERVICE, now, up: true, rssMb: rss });
           }
-          const fit = fitTrend(state.window, config.minSamples);
-          if (isMemoryDrop(prev, obs, config)) {
-            clearsSeen++;
-            expect(event).toEqual({ type: 'forecast:cleared', service: SERVICE, reason: 'memory-dropped' });
-            expect(state.warning).toBe(false);
-          } else if (fit !== null && fit.slopeMbPerSecond <= config.minSlopeMbPerS) {
-            clearsSeen++;
-            expect(event).toEqual({ type: 'forecast:cleared', service: SERVICE, reason: 'stopped-rising' });
-            expect(state.warning).toBe(false);
-          } else {
-            expect(event).toBeNull();
-            expect(state.warning).toBe(true);
-          }
-        });
-      }),
-      { numRuns: NUM_RUNS },
-    );
-    expect(clearsSeen).toBeGreaterThan(0);
+          now += 1000;
+          seq.push(
+            ending === 'down'
+              ? { service: SERVICE, now, up: false, rssMb: null }
+              : { service: SERVICE, now, up: true, rssMb: Math.max(0, rss - config.restartDropMb - 1) },
+          );
+
+          let warned = false;
+          let clears = 0;
+          runSequence(seq, config, limit, (prev, obs, result) => {
+            if (result.event?.type === 'forecast:warning') warned = true;
+            clears += checkStep(config, prev, obs, result);
+          });
+          expect(warned).toBe(true);
+          expect(clears).toBeGreaterThan(0);
+        }),
+        { numRuns: NUM_RUNS },
+      );
+    });
   });
 });
