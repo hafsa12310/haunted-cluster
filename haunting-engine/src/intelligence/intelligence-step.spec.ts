@@ -220,7 +220,7 @@ describe('scripted scenarios', () => {
     const leaking = (i: number): Overrides => ({
       payments: { rssMb: 85 + 4 * i, latencyP95Ms: 800, errorRatio: 0.5 },
     });
-    const ramp = Array.from({ length: 18 }, (_, i) => poll(next + i, leaking(i)));
+    const ramp = Array.from({ length: 24 }, (_, i) => poll(next + i, leaking(i)));
     const steps = run(state, ramp);
     const before = steps[steps.length - 1].state;
     expect(before.forecast.payments.warning).toBe(true);
@@ -229,7 +229,7 @@ describe('scripted scenarios', () => {
     );
     expect(confirmedPairs.length).toBeGreaterThanOrEqual(2);
 
-    const restart = stepIntelligence(before, poll(next + 18, {}, ['payments']), CONFIG);
+    const restart = stepIntelligence(before, poll(next + 24, {}, ['payments']), CONFIG);
     expect(restart.events[0]).toEqual({
       type: 'forecast:cleared',
       service: 'payments',
@@ -281,10 +281,10 @@ describe('scripted scenarios', () => {
     });
     const steps = run(
       state,
-      Array.from({ length: 18 }, (_, i) => poll(next + i, leaking(i))),
+      Array.from({ length: 24 }, (_, i) => poll(next + i, leaking(i))),
     );
     // Down in the Poll after the warning: forecast:cleared must precede the anomaly:cleared events.
-    const restart = stepIntelligence(steps[steps.length - 1].state, poll(next + 18, {}, ['payments']), CONFIG);
+    const restart = stepIntelligence(steps[steps.length - 1].state, poll(next + 24, {}, ['payments']), CONFIG);
     const types = restart.events.map((e) => e.type);
     expect(types).toContain('anomaly:cleared');
     const lastForecast = Math.max(...types.map((t, i) => (t.startsWith('forecast:') ? i : -1)));

@@ -6,12 +6,15 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
-    mem_limit: 256m
+    mem_limit: ${GATEWAY_MEM_LIMIT:-256m}
+    # Equal to mem_limit: no swap, so a leak ends in a real OOM kill and restart.
+    memswap_limit: ${GATEWAY_MEM_LIMIT:-256m}
+    # CHAOS_TTL_SECONDS is longer than the ~105 s the leak needs to reach the OOM kill at 2 MB/s.
     environment:
       PORT: 3000
       ORDERS_URL: http://orders:3001
       DOWNSTREAM_TIMEOUT_MS: 5000
-      CHAOS_TTL_SECONDS: 120
+      CHAOS_TTL_SECONDS: ${GATEWAY_CHAOS_TTL_SECONDS:-240}
       LEAK_MB_PER_SECOND: ${LEAK_MB_PER_SECOND:-2}
       MEMORY_GAUGE_INTERVAL_MS: ${MEMORY_GAUGE_INTERVAL_MS:-1000}
     healthcheck:
@@ -27,12 +30,15 @@ services:
     ports:
       - "3001:3001"
     restart: unless-stopped
-    mem_limit: 256m
+    mem_limit: ${ORDERS_MEM_LIMIT:-256m}
+    # Equal to mem_limit: no swap, so a leak ends in a real OOM kill and restart.
+    memswap_limit: ${ORDERS_MEM_LIMIT:-256m}
+    # CHAOS_TTL_SECONDS is longer than the ~105 s the leak needs to reach the OOM kill at 2 MB/s.
     environment:
       PORT: 3001
       PAYMENTS_URL: http://payments:3002
       DOWNSTREAM_TIMEOUT_MS: 5000
-      CHAOS_TTL_SECONDS: 120
+      CHAOS_TTL_SECONDS: ${ORDERS_CHAOS_TTL_SECONDS:-240}
       LEAK_MB_PER_SECOND: ${LEAK_MB_PER_SECOND:-2}
       MEMORY_GAUGE_INTERVAL_MS: ${MEMORY_GAUGE_INTERVAL_MS:-1000}
     healthcheck:
@@ -53,7 +59,7 @@ services:
     # instead of being paged out below the limit.
     memswap_limit: ${PAYMENTS_MEM_LIMIT:-256m}
     # CHAOS_TTL_SECONDS is longer than on the other services: the leak must outlive
-    # the ~110 s it needs to reach the OOM kill at 2 MB/s, or the TTL frees it first.
+    # the ~105 s it needs to reach the OOM kill at 2 MB/s, or the TTL frees it first.
     environment:
       PORT: 3002
       CHAOS_TTL_SECONDS: ${PAYMENTS_CHAOS_TTL_SECONDS:-240}
@@ -120,7 +126,7 @@ services:
       ANOMALY_MIN_STDDEV_LATENCY_MS: ${ANOMALY_MIN_STDDEV_LATENCY_MS:-5}
       ANOMALY_MIN_STDDEV_ERROR_RATIO: ${ANOMALY_MIN_STDDEV_ERROR_RATIO:-0.005}
       ANOMALY_MIN_STDDEV_RSS_MB: ${ANOMALY_MIN_STDDEV_RSS_MB:-2}
-      MEMORY_LIMIT_MB: ${MEMORY_LIMIT_MB:-256}
+      MEMORY_LIMIT_MB: ${MEMORY_LIMIT_MB:-290}
       FORECAST_WINDOW_POLLS: ${FORECAST_WINDOW_POLLS:-15}
       FORECAST_MIN_SAMPLES: ${FORECAST_MIN_SAMPLES:-5}
       FORECAST_MIN_R2: ${FORECAST_MIN_R2:-0.8}

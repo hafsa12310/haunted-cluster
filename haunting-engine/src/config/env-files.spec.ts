@@ -17,7 +17,7 @@ const ENGINE_DEFAULTS: Readonly<Record<string, string>> = {
   ANOMALY_MIN_STDDEV_LATENCY_MS: '5',
   ANOMALY_MIN_STDDEV_ERROR_RATIO: '0.005',
   ANOMALY_MIN_STDDEV_RSS_MB: '2',
-  MEMORY_LIMIT_MB: '256',
+  MEMORY_LIMIT_MB: '290',
   FORECAST_WINDOW_POLLS: '15',
   FORECAST_MIN_SAMPLES: '5',
   FORECAST_MIN_R2: '0.8',
@@ -72,6 +72,19 @@ function composeEnvironment(compose: string, service: string): Record<string, st
     env[m[1]] = m[2].trim();
   }
   return env;
+}
+
+/** Returns the raw value of a top-level key (such as `mem_limit`) of one compose service. */
+function composeServiceKey(compose: string, service: string, key: string): string | undefined {
+  const lines = compose.split(/\r?\n/);
+  const start = lines.findIndex((l) => l === `  ${service}:`);
+  if (start < 0) throw new Error(`service ${service} not found in docker-compose.yml`);
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^ {2}\S/.test(lines[i])) break;
+    const m = new RegExp(`^ {4}${key}:\\s*(.*)$`).exec(lines[i]);
+    if (m) return m[1].trim();
+  }
+  return undefined;
 }
 
 describe('env files and docker-compose.yml', () => {
@@ -130,6 +143,24 @@ describe('env files and docker-compose.yml', () => {
             value: `\${${name}:-${value}}`,
           });
         }
+      },
+    );
+
+    it.each([
+      ['gateway', 'GATEWAY'],
+      ['orders', 'ORDERS'],
+      ['payments', 'PAYMENTS'],
+    ])(
+      'gives %s a no-swap memory limit and a 240 s chaos TTL so a leak ends in an OOM kill',
+      (service, prefix) => {
+        const memLimit = `\${${prefix}_MEM_LIMIT:-256m}`;
+        expect(composeServiceKey(compose, service, 'mem_limit')).toBe(memLimit);
+        expect(composeServiceKey(compose, service, 'memswap_limit')).toBe(memLimit);
+        expect(composeEnvironment(compose, service)['CHAOS_TTL_SECONDS']).toBe(
+          `\${${prefix}_CHAOS_TTL_SECONDS:-240}`,
+        );
+        expect(victimEnv[`${prefix}_MEM_LIMIT`]).toBe('256m');
+        expect(victimEnv[`${prefix}_CHAOS_TTL_SECONDS`]).toBe('240');
       },
     );
 

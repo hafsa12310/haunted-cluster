@@ -257,7 +257,7 @@ export function loadEngineConfig(env: NodeJS.ProcessEnv): EngineConfig {
   const stdLatency = r.number('ANOMALY_MIN_STDDEV_LATENCY_MS', 5, 'positive');
   const stdError = r.number('ANOMALY_MIN_STDDEV_ERROR_RATIO', 0.005, 'positive');
   const stdRss = r.number('ANOMALY_MIN_STDDEV_RSS_MB', 2, 'positive');
-  const memoryLimitMb = r.number('MEMORY_LIMIT_MB', 256, 'positive');
+  const memoryLimitMb = r.number('MEMORY_LIMIT_MB', 290, 'positive');
   const windowPolls = r.count('FORECAST_WINDOW_POLLS', 15);
   const minSamples = r.count('FORECAST_MIN_SAMPLES', 5);
   const minR2 = r.number('FORECAST_MIN_R2', 0.8, 'unit');

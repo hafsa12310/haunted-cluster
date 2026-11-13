@@ -47,7 +47,7 @@ describe('loadEngineConfig', () => {
         chaosEvidenceWindowSeconds: 150,
         chaosProxyTimeoutMs: 3000,
         corsOrigin: 'http://localhost:3100',
-        memoryLimitMb: 256,
+        memoryLimitMb: 290,
         anomaly: {
           alpha: 0.1,
           zThreshold: 3,
@@ -261,7 +261,7 @@ describe('loadEngineConfig: engine-intelligence variables (Requirements 11.1-11.
       ['ANOMALY_MIN_STDDEV_LATENCY_MS', () => config.anomaly.minStdDev.latencyP95Ms, 5],
       ['ANOMALY_MIN_STDDEV_ERROR_RATIO', () => config.anomaly.minStdDev.errorRatio, 0.005],
       ['ANOMALY_MIN_STDDEV_RSS_MB', () => config.anomaly.minStdDev.rssMb, 2],
-      ['MEMORY_LIMIT_MB', () => config.memoryLimitMb, 256],
+      ['MEMORY_LIMIT_MB', () => config.memoryLimitMb, 290],
       ['FORECAST_WINDOW_POLLS', () => config.forecast.windowPolls, 15],
       ['FORECAST_MIN_SAMPLES', () => config.forecast.minSamples, 5],
       ['FORECAST_MIN_R2', () => config.forecast.minR2, 0.8],
