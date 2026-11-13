@@ -20,7 +20,7 @@ inclusion: always
 - No spec exists yet. Create `.kiro/specs/haunted-house/` with
   requirements → design → tasks, and get each reviewed before writing code.
 - Scope: one room per service, a generative soundscape mapped to real metrics, chaos
-  triggers in the UI, and display of the ghost's messages.
+  triggers in the UI, and display of the ghost's messages. Also add a per-client rate limit on the haunting-engine chaos proxy (for example @nestjs/throttler) because the chaos buttons will be public once deployed.
 - Consumes the engine's Socket.IO events; import event types from `shared/`, never
   redefine them. This includes the engine-intelligence events and snapshot fields.
 - Chaos triggers call the haunting-engine's chaos proxy only, never the victim-app's
@@ -37,11 +37,11 @@ inclusion: always
   engine can miss the outage or blame orders/gateway. Recorded in
   `.kiro/specs/haunting-engine/design.md`; deliberately left for now. The frontend
   should not present those attributions as certain.
-- The engine's RSS-vs-limit comparison runs about 40 MB below the real kill point: the
-  kill happens at RSS of about 296 MB, while `MEMORY_LIMIT_MB` is 256. Memory
-  `timeToLimit` is therefore pessimistic and forecast warnings arrive early. The
-  frontend should treat the time-to-limit as a conservative estimate, not an exact
-  countdown.
+- `MEMORY_LIMIT_MB` is now 290, calibrated to the real kill at RSS of about 296 MB
+  (256m containers). The countdown ends about 3 s before the crash. The frontend
+  should still treat `timeToLimit` as an estimate. Measured lead time is 66 s
+  (was 78 s with the limit at 256). Gateway, orders and payments all have
+  `memswap_limit` = `mem_limit` and a 240 s chaos TTL.
 
 ## Keep this file current
 When a phase finishes, move it to Done and write the next phase here.
