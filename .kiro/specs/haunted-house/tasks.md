@@ -34,7 +34,7 @@ Conventions for every task:
     - Existing config tests keep passing unchanged.
     - _Requirements: 9.7, 9.8_
 
-  - [ ]* 1.3 Write property test for rate-limit configuration
+  - [ ] 1.3 Write property test for rate-limit configuration
     - **Property 37: Rate-limit configuration rejects non-positive-integers**
     - File: `engine-config.rate-limit.prop.spec.ts`
     - **Validates: Requirements 9.7, 9.8**
@@ -45,7 +45,7 @@ Conventions for every task:
     - Counted requests are those with `nowMs - t < windowMs`. Under the limit returns `{ allowed: true, retryAfterSeconds: 0 }`. At the limit returns `retryAfterSeconds = clamp(ceil((oldest + windowMs - nowMs) / 1000), 1, windowSeconds)`.
     - _Requirements: 9.2, 9.3_
 
-  - [ ]* 2.2 Write property test for Retry-After
+  - [ ] 2.2 Write property test for Retry-After
     - **Property 34: Retry-After is a whole number inside the window**
     - File: `sliding-window.prop.spec.ts`
     - **Validates: Requirements 9.2, 9.3**
@@ -59,7 +59,7 @@ Conventions for every task:
     - Fake clock: N+1 requests from one key give a rejection; window expiry re-allows; two keys are independent; refund restores one slot; the sweep bounds memory; `reserve` on a limited key does not add a timestamp.
     - _Requirements: 9.1, 9.2, 9.5, 9.12_
 
-  - [ ]* 2.5 Write property tests for the store
+  - [ ] 2.5 Write property tests for the store
     - **Property 33: Exactly `min(N, max)` requests are accepted**, file `chaos-rate-limit.accept.prop.spec.ts`
     - **Property 35: Clients are limited independently**, file `chaos-rate-limit.clients.prop.spec.ts`
     - **Property 36: Invalid requests do not use up the allowance**, file `chaos-rate-limit.refund.prop.spec.ts`
@@ -147,7 +147,7 @@ Conventions for every task:
     - Unit test pins the documented defaults.
     - _Requirements: 14.7_
 
-  - [ ]* 8.5 Write property test for engine URL parsing
+  - [ ] 8.5 Write property test for engine URL parsing
     - **Property 32: Engine URL parsing**
     - File: `lib/engine-url.prop.spec.ts`
     - **Validates: Requirements 1.2, 14.9**
@@ -161,7 +161,7 @@ Conventions for every task:
     - `parseSnapshot`, `parseIncident`, `parseIncidentList`, `parseChaosEvent`, `parseAnomalyReading`, `parseAnomalyCleared`, `parseForecast`, `parseForecastCleared`, each `(raw: unknown) => T | null`, null on any missing or mistyped required field. Service `status` is checked only as a string so a bad status degrades one Room (2.12). Unit tests cover one missing field per event type.
     - _Requirements: 1.11, 2.12_
 
-  - [ ]* 9.3 Write property test for invalid payloads
+  - [ ] 9.3 Write property test for invalid payloads
     - **Property 2: Invalid payloads leave state unchanged**
     - File: `state/validate.prop.spec.ts`
     - **Validates: Requirements 1.11**
@@ -174,17 +174,17 @@ Conventions for every task:
     - Action-by-action examples: reconnect reset, late REST snapshot ignored, 503 path leaves state empty, resolve twice keeps one entry, silence restart not extension, hidden page sets no silence, `connecting` never returns after a failure.
     - _Requirements: 1.5, 1.6, 4.3, 4.4, 6.11, 6.19, 15.1_
 
-  - [ ]* 9.6 Write property test for connection transitions
+  - [ ] 9.6 Write property test for connection transitions
     - **Property 1: Connection loss and reconnect transitions**
     - File: `state/cluster-state.connection.prop.spec.ts`
     - **Validates: Requirements 1.4, 1.5, 1.6, 3.11, 4.15**
 
-  - [ ]* 9.7 Write property test for snapshot idempotence
+  - [ ] 9.7 Write property test for snapshot idempotence
     - **Property 3: Snapshot application is idempotent and never goes backwards**
     - File: `state/cluster-state.snapshot.prop.spec.ts`
     - **Validates: Requirements 1.9, 1.10, 3.4**
 
-  - [ ]* 9.8 Write property test for incident lists
+  - [ ] 9.8 Write property test for incident lists
     - **Property 11: Incident lists stay consistent**
     - File: `state/cluster-state.incidents.prop.spec.ts`
     - **Validates: Requirements 4.1, 4.2, 4.3, 4.4**
@@ -195,12 +195,12 @@ Conventions for every task:
     - Unit tests: `roundCountdown(2) = 5`, `(47) = 45`, `(48) = 50`, the `0` text, the `null` cases.
     - _Requirements: 3.5, 3.6, 3.7, 3.8, 3.10, 3.12, 15.1_
 
-  - [ ]* 10.2 Write property test for countdown rounding
+  - [ ] 10.2 Write property test for countdown rounding
     - **Property 9: Countdown rounding**
     - File: `state/forecast-format.round.prop.spec.ts`
     - **Validates: Requirements 3.5, 3.6, 3.7**
 
-  - [ ]* 10.3 Write property test for countdown visibility
+  - [ ] 10.3 Write property test for countdown visibility
     - **Property 10: Countdown shown only for usable warnings**
     - File: `state/forecast-format.select.prop.spec.ts`
     - **Validates: Requirements 3.5, 3.8, 3.10, 3.12**
@@ -209,7 +209,7 @@ Conventions for every task:
     - `atmosphereFor(dread)` with `d = clamp01(finite(dread))`: `darkness = 0.15 + 0.6d`, `flicker = clamp01((d - 0.3) / 0.7)`, `fog = 0.1 + 0.7d`. Unit tests for 0, 0.5, 1, `NaN`, out-of-range.
     - _Requirements: 2.10_
 
-  - [ ]* 10.5 Write property test for atmosphere
+  - [ ] 10.5 Write property test for atmosphere
     - **Property 7: Atmosphere is monotonic in Dread**
     - File: `state/atmosphere.prop.spec.ts`
     - **Validates: Requirements 2.10**
@@ -222,32 +222,32 @@ Conventions for every task:
     - Examples: nine services show eight Rooms, bad status becomes `unknown` for one Room only, dashes for missing metrics, no wording that states a root cause as fact, caveat shown for a `down` kind, empty incident lists.
     - _Requirements: 2.7, 2.9, 2.12, 4.6, 4.12, 4.13, 11.10, 15.1_
 
-  - [ ]* 10.8 Write property test for Room mapping
+  - [ ] 10.8 Write property test for Room mapping
     - **Property 4: Rooms map one to one onto services, capped at eight**
     - File: `state/selectors.rooms.prop.spec.ts`
     - **Validates: Requirements 2.1, 2.2, 2.12, 11.9, 11.10**
 
-  - [ ]* 10.9 Write property test for lost contact and blindness
+  - [ ] 10.9 Write property test for lost contact and blindness
     - **Property 5: Lost contact and blind snapshots make every Room unknown**
     - File: `state/selectors.unknown.prop.spec.ts`
     - **Validates: Requirements 1.7, 2.8**
 
-  - [ ]* 10.10 Write property test for metric formatting
+  - [ ] 10.10 Write property test for metric formatting
     - **Property 6: Metrics format with a dash for missing values**
     - File: `state/format.prop.spec.ts`
     - **Validates: Requirements 2.7**
 
-  - [ ]* 10.11 Write property test for anomaly views
+  - [ ] 10.11 Write property test for anomaly views
     - **Property 8: Anomaly effects follow the engine's confirmed set**
     - File: `state/selectors.anomalies.prop.spec.ts`
     - **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.12**
 
-  - [ ]* 10.12 Write property test for incident rows
+  - [ ] 10.12 Write property test for incident rows
     - **Property 12: Incident rows are ordered, worded and flagged correctly**
     - File: `state/selectors.incidents.prop.spec.ts`
     - **Validates: Requirements 4.5, 4.7, 4.9, 4.10, 4.11, 4.12, 4.13, 4.14, 4.17**
 
-  - [ ]* 10.13 Write property test for open durations
+  - [ ] 10.13 Write property test for open durations
     - **Property 13: Open durations freeze at lost contact**
     - File: `state/selectors.duration.prop.spec.ts`
     - **Validates: Requirements 4.8, 4.15**
@@ -261,27 +261,27 @@ Conventions for every task:
     - One exact-text example per event type, incomplete payload gives `null`, 51st message drops the oldest.
     - _Requirements: 5.2, 5.3, 5.7, 5.15, 15.1_
 
-  - [ ]* 11.3 Write property test for the ghost list
+  - [ ] 11.3 Write property test for the ghost list
     - **Property 14: Ghost list is bounded and newest first**
     - File: `state/ghost-messages.list.prop.spec.ts`
     - **Validates: Requirements 5.1, 5.2**
 
-  - [ ]* 11.4 Write property test for message content
+  - [ ] 11.4 Write property test for message content
     - **Property 15: Ghost messages carry the required content**
     - File: `state/ghost-messages.content.prop.spec.ts`
     - **Validates: Requirements 3.9, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.14**
 
-  - [ ]* 11.5 Write property test for number provenance
+  - [ ] 11.5 Write property test for number provenance
     - **Property 16: Every number in a ghost message comes from its event**
     - File: `state/ghost-messages.numbers.prop.spec.ts`
     - **Validates: Requirements 5.10**
 
-  - [ ]* 11.6 Write property test for determinism and purity
+  - [ ] 11.6 Write property test for determinism and purity
     - **Property 17: Ghost builder is deterministic and pure**
     - File: `state/ghost-messages.pure.prop.spec.ts`
     - **Validates: Requirements 5.11**
 
-  - [ ]* 11.7 Write property test for incomplete events
+  - [ ] 11.7 Write property test for incomplete events
     - **Property 18: Incomplete events produce no message**
     - File: `state/ghost-messages.incomplete.prop.spec.ts`
     - **Validates: Requirements 5.15**
@@ -295,17 +295,17 @@ Conventions for every task:
     - Fake `fetch`: 429 with `Retry-After: 37` gives 37 and `waitKnown`; 429 without the header gives the 10 s default; a never-resolving request aborts after 5000 ms with fake timers; crash carries no body and no content-type; one request only, no retry; 4xx message list joined with ", "; reset-all failure names no service.
     - _Requirements: 8.2, 8.3, 8.7, 8.11, 8.15, 10.1, 10.2, 10.7, 15.1, 15.2_
 
-  - [ ]* 12.3 Write property test for request shape
+  - [ ] 12.3 Write property test for request shape
     - **Property 28: Chaos requests go only to the proxy with the right shape**
     - File: `lib/chaos-client.request.prop.spec.ts`
     - **Validates: Requirements 8.2, 8.3, 8.4**
 
-  - [ ]* 12.4 Write property test for status mapping
+  - [ ] 12.4 Write property test for status mapping
     - **Property 29: Every response status maps to exactly one outcome**
     - File: `lib/chaos-client.status.prop.spec.ts`
     - **Validates: Requirements 8.6, 8.7, 8.8, 8.9**
 
-  - [ ]* 12.5 Write property test for Retry-After parsing
+  - [ ] 12.5 Write property test for Retry-After parsing
     - **Property 30: Retry-After parsing**
     - File: `lib/chaos-client.retry-after.prop.spec.ts`
     - **Validates: Requirements 10.1, 10.2**
@@ -314,7 +314,7 @@ Conventions for every task:
     - `chaosUiReducer`, `isServiceDisabled`, `isResetAllDisabled`, `rateLimitRemainingSeconds`. Sent sets in-flight and cooldown; completed sets a result visible for `RESULT_VISIBLE_MS`; a `rate-limited` outcome sets a global lock and a newer 429 replaces it. Unit tests: lock expiry re-enables, countdown seconds, result expiry, disabled while not `connected`.
     - _Requirements: 8.5, 8.12, 8.16, 10.3, 10.4, 10.5, 10.6_
 
-  - [ ]* 12.7 Write property test for control gating
+  - [ ] 12.7 Write property test for control gating
     - **Property 31: Control gating follows connection, cooldown, in-flight and rate limit**
     - File: `state/chaos-ui.prop.spec.ts`
     - **Validates: Requirements 1.8, 8.5, 8.12, 8.16, 10.3, 10.4, 10.5, 10.6**
@@ -337,47 +337,47 @@ Conventions for every task:
     - Examples per state (unavailable, lost contact, blind, live, silence active and expired), empty service list, heartbeat off with no trigger, heartbeat bpm bounds, whisper and scream rooms tie to the first in order, a deep-frozen input.
     - _Requirements: 6.7, 6.8, 6.9, 6.11, 6.12, 6.13, 6.15, 15.1_
 
-  - [ ]* 14.3 Write property test for ranges
+  - [ ] 14.3 Write property test for ranges
     - **Property 19: Audio output is always finite and in range**
     - File: `audio/mapping.range.prop.spec.ts`
     - **Validates: Requirements 6.10, 6.14**
 
-  - [ ]* 14.4 Write property test for ambient monotonicity
+  - [ ] 14.4 Write property test for ambient monotonicity
     - **Property 20: Ambient intensity is monotonic in Dread**
     - File: `audio/mapping.ambient.prop.spec.ts`
     - **Validates: Requirements 6.6**
 
-  - [ ]* 14.5 Write property test for whispers
+  - [ ] 14.5 Write property test for whispers
     - **Property 21: Whispers are monotonic in the highest latency badness**
     - File: `audio/mapping.whispers.prop.spec.ts`
     - **Validates: Requirements 6.7**
 
-  - [ ]* 14.6 Write property test for screams
+  - [ ] 14.6 Write property test for screams
     - **Property 22: Screams are monotonic in the highest error badness**
     - File: `audio/mapping.screams.prop.spec.ts`
     - **Validates: Requirements 6.8**
 
-  - [ ]* 14.7 Write property test for the heartbeat
+  - [ ] 14.7 Write property test for the heartbeat
     - **Property 23: Heartbeat never slows as memory trouble grows**
     - File: `audio/mapping.heartbeat.prop.spec.ts`
     - **Validates: Requirements 6.9**
 
-  - [ ]* 14.8 Write property test for determinism and immutability
+  - [ ] 14.8 Write property test for determinism and immutability
     - **Property 24: Audio mapping is deterministic and does not mutate its input**
     - File: `audio/mapping.pure.prop.spec.ts`
     - **Validates: Requirements 6.15**
 
-  - [ ]* 14.9 Write property test for overrides
+  - [ ] 14.9 Write property test for overrides
     - **Property 25: Lost contact, blindness and silence override the layers**
     - File: `audio/mapping.overrides.prop.spec.ts`
     - **Validates: Requirements 1.8, 6.11, 6.12, 6.13**
 
-  - [ ]* 14.10 Write property test for the silence trigger
+  - [ ] 14.10 Write property test for the silence trigger
     - **Property 26: Silence is triggered by newly down services, restarts and respects page visibility**
     - File: `state/cluster-state.silence.prop.spec.ts`
     - **Validates: Requirements 6.11, 6.19**
 
-  - [ ]* 14.11 Write property test for cues
+  - [ ] 14.11 Write property test for cues
     - **Property 27: Cues are a function of the mapping output alone**
     - File: `audio/mapping.cues.prop.spec.ts`
     - **Validates: Requirements 6.11, 7.1, 7.2, 7.3, 7.4, 7.5, 7.7, 7.8**
@@ -526,11 +526,11 @@ Conventions for every task:
     - _Requirements: 13.9, 15.8_
 
   - [ ] 27.3 Manual sound check in Chrome, Firefox and Safari
-    - In each browser: sound starts only after the "enable sound" click or key press (Safari must start on the first click), each Audio_Layer is heard (ambient, whispers, screams, heartbeat, and the lost-contact tone by stopping the engine), Mute silences within 300 ms and restores, and switching tabs and back plays no stale silence. Record browser versions in `.kiro/NOTES.md`.
+    - In each browser: sound starts only after the "enable sound" click or key press (Safari must start on the first click), each Audio_Layer is heard (ambient, whispers, screams, heartbeat, and the lost-contact tone by stopping the engine), Mute silences within 300 ms and restores, and switching tabs and back plays no stale silence. Append an entry recording the browser versions to the existing `NOTES.md` at the repository root.
     - _Requirements: 6.2, 6.4, 6.19, 15.12_
 
   - [ ] 27.4 Add the Client_Key deployment-check note
-    - Write a "Deployment check: Client_Key" section (README or `.kiro/NOTES.md`) with the three steps from design.md for `TRUST_PROXY=true` behind a Cloudflare Tunnel: a known client is limited by its own address (5 accepted then 429 with `Retry-After`); a second network is not limited at the same time; a spoofed `X-Forwarded-For` from the limited network is still 429. Include the temporary `Logger.debug` of `req.ip` and its removal, and the fallback to `TRUST_PROXY=false`. This task only writes the note; the check is run once on the live deployment, outside this plan.
+    - Add a "Deployment check: Client_Key" section to `README.md`, or append it as an entry to the existing `NOTES.md` at the repository root, with the three steps from design.md for `TRUST_PROXY=true` behind a Cloudflare Tunnel: a known client is limited by its own address (5 accepted then 429 with `Retry-After`); a second network is not limited at the same time; a spoofed `X-Forwarded-For` from the limited network is still 429. Include the temporary `Logger.debug` of `req.ip` and its removal, and the fallback to `TRUST_PROXY=false`. This task only writes the note; the check is run once on the live deployment, outside this plan.
     - _Requirements: 14.14_
 
 - [ ] 28. Checkpoint E - Full verification complete
@@ -547,16 +547,16 @@ Conventions for every task:
     - Add the frontend to the run instructions (`docker compose up`, house on port 3100, `NEXT_PUBLIC_ENGINE_URL` fixed at build time, `CORS_ORIGIN`, rate-limit variables) and the "Possess it" rate-limit behaviour.
     - _Requirements: 14.2, 14.6_
 
-  - [ ] 29.3 Add a `.kiro/NOTES.md` entry
-    - Record what shipped, the measured results (test counts, audit result, browser versions from 27.3) and any deviations or issues found.
+  - [ ] 29.3 Append a `NOTES.md` entry (repository root)
+    - Record what shipped, the measured results (test counts, audit result, browser versions from 27.3) and any deviations or issues found. Append this entry to the existing `NOTES.md` at the repository root.
     - _Requirements: 15.13_
 
 ## Notes
 
-- Tasks marked with `*` are optional property tests and can be skipped for a faster MVP; unit tests for core logic are not optional.
+- All property tests are required, not optional: Requirements 15.3 and 15.4 require them. Unit tests for core logic are required too.
 - Each app milestone ends with a real boot, per the steering lessons and Requirement 15.
 - Tasks 27.1 to 27.3 are manual verification runs, as in earlier plans; 27.4 writes a note only and the Cloudflare check happens at deployment time.
-- Design property numbers P1 to P37 map one to one to the optional property tasks above.
+- Design property numbers P1 to P37 map one to one to the property test tasks above.
 
 ## Task Dependency Graph
 
