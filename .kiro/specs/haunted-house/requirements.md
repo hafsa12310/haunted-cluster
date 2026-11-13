@@ -48,7 +48,13 @@ This feature also makes one change in the haunting-engine: a per-client rate lim
 - **Chaos_Preset**: The fixed parameters sent for each button: latency `{ ms: 1500 }`, errors `{ percentage: 50 }`, memory leak `{ enabled: true }`; crash and reset have no body.
 - **Cooldown**: The short period after a Possess_Controls action during which that service's buttons are disabled, `CHAOS_COOLDOWN_MS` (default 3000).
 - **Chaos_Rate_Limit**: The Engine's per-client limit on chaos actions: at most `CHAOS_RATE_LIMIT_MAX` (default 5) accepted requests per `CHAOS_RATE_LIMIT_WINDOW_SECONDS` (default 60) per client.
-- **Client_Key**: The identity of a client for the Chaos_Rate_Limit, the client IP address as seen by the Engine.
+- **Client_Key**: The identity of a client for the Chaos_Rate_Limit. When `TRUST_PROXY` is `true`, it is the address reported by the first proxy hop (Express `trust proxy` set to 1); otherwise it is the direct connection address.
+- **Trusted_Proxy_Hop**: The single reverse proxy whose reported client address the Engine trusts when `TRUST_PROXY` is `true`.
+- **CORS_Origin**: The Engine's `CORS_ORIGIN` setting, the one browser origin allowed to call the Engine, default `http://localhost:3100`.
+- **Haunted_Scene**: The drawn (inline SVG) picture of the house in which each Room is a part of the house.
+- **Design_Tokens**: The named colour, typeface and spacing values of the visual identity, defined once for both the light and dark themes.
+- **Heading_Font**: The self-hosted spooky typeface used for headings.
+- **Body_Font**: The self-hosted readable typeface used for body text.
 - **Frontend_Health_Route**: The Frontend's `GET /api/health` route.
 
 ## Requirements
@@ -167,7 +173,7 @@ This feature also makes one change in the haunting-engine: a per-client rate lim
 4. WHEN the user activates the Mute_Control, THE Frontend SHALL silence every Audio_Layer (output level 0) within 300 ms, and WHEN the user activates it again, THE Frontend SHALL restore every Audio_Layer to its mapped level within 300 ms. THE Mute_Control SHALL be focusable and operable with the Enter and Space keys.
 5. WHILE the Soundscape is muted, THE Frontend SHALL display a muted indicator that is visible and exposed to assistive technology as text.
 6. THE Audio_Mapping SHALL map Dread in [0, 1] to the ambient layer intensity in [0, 1], such that for any two Dread values a ≤ b the ambient intensity for a is less than or equal to that for b.
-7. THE Audio_Mapping SHALL map the highest `latencyP95Ms` among services whose status is neither `unknown` nor `down` to the whispers layer level in [0, 1], such that a higher latency never produces a lower level, using the Engine's `badness.latency` thresholds as input and introducing no new thresholds. IF no service has a status other than `unknown` or `down`, THEN THE Audio_Mapping SHALL return a whispers level of 0.
+7. THE Audio_Mapping SHALL map the highest `badness.latency` among services whose status is neither `unknown` nor `down` to the whispers layer level in [0, 1], such that a higher latency badness never produces a lower level. IF no service has a status other than `unknown` or `down`, THEN THE Audio_Mapping SHALL return a whispers level of 0.
 8. THE Audio_Mapping SHALL map the highest `badness.errors` among all services to the screams layer level in [0, 1], such that a higher badness never produces a lower level. IF the service list is empty, THEN THE Audio_Mapping SHALL return a screams level of 0.
 9. WHILE any service has an active Forecast_Countdown or an `rssMb` that increased across the two most recent snapshots, THE Audio_Mapping SHALL derive the heartbeat rate from the highest memory `badness`, or from the shortest `timeToLimitSeconds` for an active forecast, such that a higher memory badness or a shorter time to limit never produces a slower heartbeat. WHILE no service meets that condition, THE Audio_Mapping SHALL return a heartbeat level of 0.
 10. THE Audio_Mapping SHALL keep the heartbeat rate within `HEARTBEAT_MIN_BPM` (40) and `HEARTBEAT_MAX_BPM` (180) inclusive whenever the heartbeat level is above 0.
@@ -188,7 +194,7 @@ This feature also makes one change in the haunting-engine: a per-client rate lim
 #### Acceptance Criteria
 
 1. WHILE the ambient layer level is above 0, THE Frontend SHALL show an Audio_Visual_Cue for ambient intensity whose displayed intensity changes monotonically with the ambient level, such that a level change of 0.05 or more (on the 0 to 1 scale) produces a visibly different cue state, and the cue is updated within 250 ms of the Audio_Mapping output changing.
-2. WHILE the whispers level is above 0, THE Frontend SHALL show an Audio_Visual_Cue for whispers on the Room with the highest latency, and IF two or more Rooms have equal highest latency, THEN THE Frontend SHALL show the cue on the first of those Rooms in the fixed Room order used by the Audio_Mapping.
+2. WHILE the whispers level is above 0, THE Frontend SHALL show an Audio_Visual_Cue for whispers on the Room with the highest `badness.latency` among services whose status is neither `unknown` nor `down`, and IF two or more Rooms have equal highest latency badness, THEN THE Frontend SHALL show the cue on the first of those Rooms in the fixed Room order used by the Audio_Mapping.
 3. WHILE the screams level is above 0, THE Frontend SHALL show an Audio_Visual_Cue for screams on the Room with the highest error badness, and IF two or more Rooms have equal highest error badness, THEN THE Frontend SHALL show the cue on the first of those Rooms in the fixed Room order used by the Audio_Mapping.
 4. WHILE the heartbeat is audible, THE Frontend SHALL show a pulsing Audio_Visual_Cue whose pulse rate equals the heartbeat rate from the Audio_Mapping output, within a tolerance of 5%.
 5. WHEN the sudden silence of Requirement 6, Criterion 11 begins, THE Frontend SHALL show a visible "silence" cue, and THE Frontend SHALL remove the cue when the silence ends, so that the cue duration equals the silence duration within 250 ms.
@@ -233,12 +239,13 @@ This feature also makes one change in the haunting-engine: a per-client rate lim
 4. THE Engine SHALL NOT apply the Chaos_Rate_Limit to `GET /api/chaos/:service/state`, `GET /api/snapshot`, `GET /health` or the Socket.IO connection.
 5. WHILE a Client_Key is limited, THE Engine SHALL accept chaos requests from other Client_Keys that are below their own limit, with the same behavior as when no Client_Key is limited.
 6. WHEN `POST /api/chaos/reset-all` is accepted, THE Engine SHALL count it as exactly one request toward the limit, regardless of how many Victim_App services it resets.
-7. THE Engine SHALL read `CHAOS_RATE_LIMIT_MAX` and `CHAOS_RATE_LIMIT_WINDOW_SECONDS` from environment variables with defaults of 5 and 60, and SHALL list both in `haunting-engine/.env.example` and pass them through `docker-compose.yml`.
+7. THE Engine SHALL read `CHAOS_RATE_LIMIT_MAX`, `CHAOS_RATE_LIMIT_WINDOW_SECONDS` and `TRUST_PROXY` from environment variables with defaults of 5, 60 and `false`, and SHALL list all three in `haunting-engine/.env.example` and pass them through `docker-compose.yml`.
 8. IF `CHAOS_RATE_LIMIT_MAX` or `CHAOS_RATE_LIMIT_WINDOW_SECONDS` is set to a value that is not a positive integer (for example 0, a negative number, a decimal or non-numeric text), THEN THE Engine SHALL refuse to start, exit with a non-zero exit code, and log a message naming the invalid variable.
-9. WHERE the Engine runs behind a reverse proxy, THE Engine SHALL take the Client_Key from the forwarded-for header only WHEN `TRUST_PROXY` is set to `true`; otherwise THE Engine SHALL take the Client_Key from the direct connection address and ignore any forwarded-for header sent by the client.
-10. THE Engine SHALL leave Chaos_Proxy validation, forwarding, status mapping and chaos event recording unchanged for requests below the limit.
-11. IF a chaos request fails validation with status 400, THEN THE Engine SHALL answer with 400 and SHALL NOT count that request toward the limit.
-12. FOR ALL sequences of N chaos requests from one Client_Key within one window, THE Engine SHALL accept exactly `min(N, CHAOS_RATE_LIMIT_MAX)` of them and answer the remaining `N - min(N, CHAOS_RATE_LIMIT_MAX)` with 429.
+9. WHERE `TRUST_PROXY` is set to `true`, THE Engine SHALL trust exactly one Trusted_Proxy_Hop (Express `trust proxy` set to 1) and SHALL take the Client_Key from the address that proxy reports, so that a client-supplied `X-Forwarded-For` header cannot change the Client_Key.
+10. WHILE `TRUST_PROXY` is not set to `true`, THE Engine SHALL take the Client_Key from the direct connection address and SHALL ignore every forwarded header sent by the client.
+11. THE Engine SHALL leave Chaos_Proxy validation, forwarding, status mapping and chaos event recording unchanged for requests below the limit.
+12. IF a chaos request fails validation with status 400, THEN THE Engine SHALL answer with 400 and SHALL NOT count that request toward the limit.
+13. FOR ALL sequences of N chaos requests from one Client_Key within one window, THE Engine SHALL accept exactly `min(N, CHAOS_RATE_LIMIT_MAX)` of them and answer the remaining `N - min(N, CHAOS_RATE_LIMIT_MAX)` with 429.
 
 ### Requirement 10: Friendly Rate-Limit Message
 
@@ -262,16 +269,34 @@ This feature also makes one change in the haunting-engine: a per-client rate lim
 
 1. THE Frontend SHALL lay out the Rooms, Incident_Panel, Ghost_Area and Possess_Controls with no horizontal scrolling (document scroll width not greater than viewport width) at every viewport width from 320 px to 1920 px inclusive.
 2. WHILE the viewport width is below 768 px, THE Frontend SHALL stack the Rooms, Incident_Panel, Ghost_Area and Possess_Controls in a single column, with each element spanning the full content width.
-3. WHILE the viewport width is 768 px or more, THE Frontend SHALL show the Rooms side by side in a single row in Service_Chain order, with the Incident_Panel and Ghost_Area beside or below the Rooms.
+3. WHILE the viewport width is 768 px or more, THE Frontend SHALL show the Rooms side by side in a single row in Service_Chain order when all Rooms fit in the row, and SHALL wrap the Rooms into a grid of rows, still in Service_Chain order, when they do not fit, with no clipped text and no clipped buttons, and with the Incident_Panel and Ghost_Area beside or below the Rooms.
 4. WHILE the system colour scheme preference is `dark`, THE Frontend SHALL apply the dark theme, and WHILE the preference is `light`, THE Frontend SHALL apply the light theme.
 5. WHEN the system colour scheme preference changes while the page is open, THE Frontend SHALL switch to the matching theme within 500 ms without a page reload and without losing the current Room_Status, Incident_Panel or Ghost_Area content.
 6. THE Frontend SHALL give text a contrast ratio of at least 4.5:1 against its background in both themes at every Room_Status.
 7. THE Frontend SHALL make every interactive control reachable and operable using the keyboard alone, and SHALL show a visible focus indicator with a contrast ratio of at least 3:1 against adjacent colours on the focused control.
 8. THE Frontend SHALL give every interactive control a non-empty accessible name that describes its purpose.
 9. WHEN the service list contains between 1 and 8 services inclusive, THE Frontend SHALL render every service as a Room with no overlapping Rooms, no clipped text and no horizontal scrolling at viewport widths from 320 px to 1920 px.
-10. IF the service list contains more than 8 services, THEN THE Frontend SHALL render the first 8 services in Service_Chain order and omit the remainder without layout breakage.
+10. IF the service list contains more than 8 services, THEN THE Frontend SHALL render the first 8 services in Service_Chain order, laid out under the wrapping rules of Criterion 3, and omit the remainder without layout breakage.
 
-### Requirement 12: Shared Types and Structure
+### Requirement 12: Visual Identity
+
+**User Story:** As a visitor, I want the house to look like one coherent haunted place, so that the demo feels memorable while every status stays readable.
+
+#### Acceptance Criteria
+
+1. THE Frontend SHALL render the Rooms inside one Haunted_Scene drawn as inline SVG, in which each Room is a distinct part of the house, in Service_Chain order, and SHALL NOT present the Rooms as a plain grid of cards.
+2. THE design document SHALL contain a section that lists the Haunted_Scene structure (the SVG groups, one per Room, and the shared elements such as roof, ground and fog), the Heading_Font, the Body_Font and every Design_Token.
+3. THE Frontend SHALL use the Heading_Font for headings and the Body_Font for body text, and SHALL load both from files served by the Frontend itself, with zero font requests to any other origin at runtime.
+4. IF the Heading_Font or the Body_Font fails to load, THEN THE Frontend SHALL render the affected text in a fallback font stack that ends in a generic family and SHALL keep all text readable and unclipped.
+5. THE Frontend SHALL define the Design_Tokens once, with a light-theme value and a dark-theme value for each token, and SHALL cover with them the five Room_Statuses, the three Anomaly_Effect signals (`latencyP95Ms`, `errorRatio`, `rssMb`) and the five Audio_Layers' Audio_Visual_Cues.
+6. THE Frontend SHALL take every colour used in the Haunted_Scene, the Rooms and the Audio_Visual_Cues from the Design_Tokens, with zero hardcoded colour values outside the token definitions.
+7. THE Frontend SHALL have a test that computes the contrast ratio of every text token against its background token in both themes, for every Room_Status, and fails when any ratio is below 4.5:1.
+8. THE Frontend SHALL have a test that computes the contrast ratio of the focus-indicator token against each adjacent background token in both themes and fails when any ratio is below 3:1.
+9. THE Frontend SHALL convey each Room_Status through visible text and a shape or pattern difference in the Haunted_Scene in addition to colour, so that no status depends on colour alone.
+10. WHILE the user's system setting prefers reduced motion, THE Frontend SHALL show the Haunted_Scene with no animation faster than 1 change per second, under the same rules as Requirement 2, Criterion 11.
+11. THE Haunted_Scene SHALL keep the layout rules of Requirement 11, including no horizontal scrolling from 320 px to 1920 px, no clipped text and no clipped buttons.
+
+### Requirement 13: Shared Types and Structure
 
 **User Story:** As a maintainer, I want the frontend to share one definition of every event, so that the Engine and the Frontend cannot drift apart.
 
@@ -286,7 +311,7 @@ This feature also makes one change in the haunting-engine: a per-client rate lim
 7. THE Frontend SHALL contain no secret values, no API keys and no LLM calls in files under `haunted-house/` or in browser-bundled code, because the narrator runs server-side in a later spec.
 8. IF the Frontend is built and `shared/dist` is missing or does not contain the declaration files for the imported types, THEN THE Frontend SHALL fail the build with a non-zero exit code and an error message identifying the missing Shared_Package output.
 
-### Requirement 13: Configuration, Docker and Boot
+### Requirement 14: Configuration, Docker and Boot
 
 **User Story:** As a developer, I want one command to start the whole stack including the house, so that I can run and demo it without setup.
 
@@ -299,10 +324,14 @@ This feature also makes one change in the haunting-engine: a per-client rate lim
 5. WHEN `GET /api/health` is requested, THE Frontend_Health_Route SHALL answer 200 with `{ "status": "ok", "service": "haunted-house" }` within 500 ms, without contacting the Engine, including while the Engine is unreachable.
 6. WHEN `docker compose up` is run from the repository root, THE docker-compose.yml SHALL start every service, including the `haunted-house` service, with no other step, and the `haunted-house` service SHALL report healthy within 120 seconds of the build completing.
 7. THE Frontend SHALL read every tunable named in this document (`RECENT_INCIDENTS_LIMIT`, `GHOST_MESSAGE_LIMIT`, `CHAOS_COOLDOWN_MS`, `CHAOS_REQUEST_TIMEOUT_MS`, `RESULT_VISIBLE_MS`, `SILENCE_MS`, `HEARTBEAT_MIN_BPM`, `HEARTBEAT_MAX_BPM`) from one constants module with the defaults stated in this document, and SHALL take the Engine_URL from the environment only, with no hardcoded fallback host in any other module.
-8. THE Engine SHALL use `http://localhost:3100` as its default CORS origin, SHALL accept cross-origin chaos POST requests, including the preflight request, from that origin, and SHALL expose the `Retry-After` header to browser scripts so that the Frontend can read it on a rate-limited response.
+8. THE Engine SHALL read its CORS_Origin from the environment variable `CORS_ORIGIN` with the default `http://localhost:3100`, SHALL accept cross-origin chaos POST requests, including the preflight request, from that origin, and SHALL expose the `Retry-After` header to browser scripts so that the Frontend can read it on a rate-limited response.
 9. IF `NEXT_PUBLIC_ENGINE_URL` is missing or is not a valid absolute http or https URL when the Frontend is built or started, THEN THE Frontend SHALL fail the build or start with an error message naming `NEXT_PUBLIC_ENGINE_URL`, and SHALL NOT serve any page.
+10. THE Frontend SHALL treat `NEXT_PUBLIC_ENGINE_URL` as fixed at build time (inlined into the browser bundle), so that a deployed image SHALL be built with the public Engine URL and changing the Engine_URL SHALL require a rebuild of the Frontend image.
+11. THE Engine SHALL accept the public Frontend URL through `CORS_ORIGIN`, and THE docker-compose.yml SHALL pass `CORS_ORIGIN` to the `haunting-engine` service with the default `http://localhost:3100`.
+12. THE `haunted-house/.env.example` SHALL document with a comment that `NEXT_PUBLIC_ENGINE_URL` is fixed at build time, and THE `haunting-engine/.env.example` SHALL document with a comment that `CORS_ORIGIN` must be set to the public Frontend URL when deployed.
+13. THE docker-compose.yml SHALL document with a comment, at the `NEXT_PUBLIC_ENGINE_URL` build argument, that changing it requires rebuilding the `haunted-house` image, and SHALL document with a comment, at the `CORS_ORIGIN` environment entry, that it must match the public Frontend URL.
 
-### Requirement 14: Testing and Real Boot
+### Requirement 15: Testing and Real Boot
 
 **User Story:** As a maintainer, I want tests and a real boot at each milestone, so that a green test run means the house actually runs.
 
@@ -310,7 +339,7 @@ This feature also makes one change in the haunting-engine: a per-client rate lim
 
 1. THE Frontend SHALL have Jest unit tests that each pass for: the Cluster_State reducer, the Ghost_Message_Builder, the chaos client, the Forecast_Countdown formatting and the connection state handling.
 2. THE Frontend SHALL have a Jest unit test of the chaos client in which a 429 response carrying a `Retry-After` header yields a rate-limited result containing the `Retry-After` value in seconds, and a 429 response without a `Retry-After` header yields a rate-limited result using a documented default wait.
-3. THE Frontend SHALL have fast-check property tests, each run with at least 100 iterations and tagged with a `// Feature: haunted-house, Property <N>: <text>` comment, covering: Audio_Mapping outputs (every value finite and in [0, 1], heartbeat within its configured bounds); Audio_Mapping monotonicity (non-decreasing in Dread, latency, error badness and memory badness); Audio_Mapping determinism (same input gives equal output) and input immutability (a deep-frozen input does not throw and is unchanged); the Cluster_State reducer (a resolved incident leaves the open list and enters Recent_Incidents, whose length never exceeds its configured limit; applying the same snapshot twice gives a state equal to applying it once); the Ghost_Message_Builder (every number in the message appears in the payload, and the same payload gives the same message); the atmosphere function (non-decreasing in Dread); and the Forecast_Countdown rounding.
+3. THE Frontend SHALL have fast-check property tests, each run with at least 100 iterations and tagged with a `// Feature: haunted-house, Property <N>: <text>` comment, covering: Audio_Mapping outputs (every value finite and in [0, 1], heartbeat within its configured bounds); Audio_Mapping monotonicity (non-decreasing in Dread, latency badness, error badness and memory badness); Audio_Mapping determinism (same input gives equal output) and input immutability (a deep-frozen input does not throw and is unchanged); the Cluster_State reducer (a resolved incident leaves the open list and enters Recent_Incidents, whose length never exceeds its configured limit; applying the same snapshot twice gives a state equal to applying it once); the Ghost_Message_Builder (every number in the message appears in the payload, and the same payload gives the same message); the atmosphere function (non-decreasing in Dread); and the Forecast_Countdown rounding.
 4. THE Engine SHALL have Jest tests for the Chaos_Rate_Limit, including a fast-check property test, run with at least 100 iterations and tagged `// Feature: haunted-house, Property <N>: <text>`, asserting that for N requests from one Client_Key in one window, exactly `min(N, CHAOS_RATE_LIMIT_MAX)` are accepted and the rest are rejected.
 5. THE Engine SHALL have a test that builds the full `AppModule` with the rate limit in place and calls `app.init()` without throwing.
 6. THE Engine SHALL have a test in which the request exceeding `CHAOS_RATE_LIMIT_MAX` receives a 429 response with a `Retry-After` header whose value is a positive integer number of seconds no greater than the window length.
@@ -318,4 +347,5 @@ This feature also makes one change in the haunting-engine: a per-client rate lim
 8. WHEN the Frontend milestone is complete, THE Frontend SHALL be verified by a real boot: build with exit code 0, start the production server, then `GET /api/health` and the home page each answer 200 within 10 seconds of the server reporting ready.
 9. WHEN the Engine rate-limit milestone is complete, THE Engine SHALL be verified by a real boot: build with exit code 0, start, `GET /health` answers 200, then sending `CHAOS_RATE_LIMIT_MAX` + 1 chaos requests from one Client_Key within one window yields a 429 with a `Retry-After` header on the last request.
 10. WHEN the full stack milestone is complete, THE stack SHALL be verified by `docker compose up`, where within 120 seconds all services are running, `GET /api/health` on port 3100 answers 200, and the page receives at least one `cluster:snapshot` from the Engine.
-11. IF any test, build or boot check in criteria 1 to 10 fails, THEN THE milestone SHALL be treated as not complete and SHALL NOT be marked done in `tasks.md` until the check passes.
+11. THE Engine SHALL have tests showing that a spoofed `X-Forwarded-For` header does not bypass the Chaos_Rate_Limit: (a) with `TRUST_PROXY` unset, N requests from one direct address that each carry a different `X-Forwarded-For` value are counted against one Client_Key and the request beyond `CHAOS_RATE_LIMIT_MAX` receives 429; and (b) with `TRUST_PROXY=true` behind one Trusted_Proxy_Hop, requests whose client-supplied `X-Forwarded-For` values differ but whose address reported by the proxy is the same are counted against one Client_Key and the request beyond `CHAOS_RATE_LIMIT_MAX` receives 429.
+12. IF any test, build or boot check in criteria 1 to 11 fails, THEN THE milestone SHALL be treated as not complete and SHALL NOT be marked done in `tasks.md` until the check passes.
