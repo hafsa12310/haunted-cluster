@@ -7,15 +7,20 @@
   - `libs/observability` — Prometheus metrics, metrics interceptor, /metrics and /health
   - `libs/chaos` — chaos service, interceptor, controller and DTOs
   - `load-generator/` — steady fake traffic to gateway
-- `haunting-engine/` — standalone NestJS app that polls Prometheus, scores health, attributes faults, tracks incidents, proxies chaos and streams events over Socket.IO. Complete (rule-based; the ML layer comes from the engine-intelligence spec).
+- `haunting-engine/` — standalone NestJS app that polls Prometheus, scores health, attributes faults, tracks incidents, proxies chaos and streams events over Socket.IO. Complete, including the engine-intelligence ML layer (anomalies, memory forecasts, similar incidents).
   - `src/config/` — env config and validation
   - `src/health/` — health scoring
   - `src/incidents/` — fault attribution and incident tracking
   - `src/metrics/` — PromQL queries, Prometheus client, metrics collector
   - `src/chaos-proxy/` — proxy to the victim-app chaos endpoints
   - `src/engine/` — engine state, poller, Socket.IO gateway
+    - `src/intelligence/` — the ML layer, all pure functions: `intelligence-step.ts` runs it once per Poll
+    - `anomaly/` — EWMA baselines, learning guards, anomaly detection, confirmation and relearning
+    - `forecast/` — RSS trend fitting and memory-exhaustion forecasting
+    - `similarity/` — incident feature vectors and cosine-similarity matching
+    - `test-support.ts` — test-only Poll-sequence generators and `deepFreeze`; never imported by production code
   - `test/` — integration tests against the running stack
-- `shared/` — types-only package (`@haunted-cluster/shared`): interfaces and types, no runtime code
+- `shared/` — types-only package (`@haunted-cluster/shared`): interfaces and types, no runtime code. Includes the engine-intelligence types (`intelligence.ts`): anomalies, forecasts, similar incidents and their events.
 - `haunted-house/` — Next.js frontend (visuals, audio, chaos triggers, and display of the ghost's messages). Not started. The ghost narrator's LLM calls run server-side, never in the browser.
 - `prometheus/prometheus.yml` and `docker-compose.yml` — at the repository root; compose starts the whole stack
 
