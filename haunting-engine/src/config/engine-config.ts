@@ -5,7 +5,7 @@
  * process itself. It throws a `ConfigError` naming the offending variable, and
  * `main.ts` turns that into a log line and `process.exit(1)`.
  *
- * Requirements: 7.7, 13.1, 13.2, 13.3
+ * Requirements: 7.7, 13.1, 13.2, 13.3, haunted-house 9.7, 9.8, 14.8
  */
 
 import type { MonitoredSignal } from '@haunted-cluster/shared';
@@ -38,6 +38,11 @@ export interface SimilarityConfig {
   durationCapSeconds: number; // SIMILARITY_DURATION_CAP_SECONDS, integer >= 1
 }
 
+export interface ChaosRateLimitConfig {
+  max: number; // CHAOS_RATE_LIMIT_MAX, positive integer
+  windowSeconds: number; // CHAOS_RATE_LIMIT_WINDOW_SECONDS, positive integer
+}
+
 export interface EngineConfig {
   port: number;
   prometheusUrl: string;
@@ -58,6 +63,10 @@ export interface EngineConfig {
   chaosEvidenceWindowSeconds: number;
   chaosProxyTimeoutMs: number;
   corsOrigin: string;
+  /** Per-client limit on `POST /api/chaos/*`. Requirements: 9.7, 9.8 */
+  chaosRateLimit: ChaosRateLimitConfig;
+  /** Trust exactly one proxy hop for the client address. Requirements: 9.7 */
+  trustProxy: boolean;
   memoryLimitMb: number;
   anomaly: AnomalyConfig;
   forecast: ForecastConfig;
@@ -94,7 +103,16 @@ interface IssueReader {
   number(name: string, fallback: number, rule: 'positive' | 'alpha' | 'unit'): number | undefined;
   /** Positive integer; returns undefined (and records an issue) if invalid. */
   count(name: string, fallback: number): number | undefined;
+  /**
+   * Strict positive integer: the raw value must match `/^[1-9]\d*$/` with no
+   * padding, signs, decimals or exponents. Unset or blank uses the fallback.
+   */
+  strictCount(name: string, fallback: number): number | undefined;
+  /** `true` or `false`, trimmed and case-insensitive. Unset or blank uses the fallback. */
+  flag(name: string, fallback: boolean): boolean | undefined;
 }
+
+const STRICT_POSITIVE_INTEGER = /^[1-9]\d*$/;
 
 export function readIssues(env: NodeJS.ProcessEnv): IssueReader {
   const issues: ConfigIssue[] = [];
@@ -132,6 +150,26 @@ export function readIssues(env: NodeJS.ProcessEnv): IssueReader {
         return fail(name, `${name} must be a positive integer, got "${value}"`);
       }
       return value;
+    },
+    strictCount(name, fallback) {
+      const raw = env[name];
+      if (raw === undefined || raw.trim() === '') return fallback;
+      if (!STRICT_POSITIVE_INTEGER.test(raw)) {
+        return fail(name, `${name} must be a positive integer, got "${raw}"`);
+      }
+      const value = Number(raw);
+      if (!Number.isSafeInteger(value)) {
+        return fail(name, `${name} is too large, got "${raw}"`);
+      }
+      return value;
+    },
+    flag(name, fallback) {
+      const raw = read(env, name);
+      if (raw === undefined) return fallback;
+      const lower = raw.toLowerCase();
+      if (lower === 'true') return true;
+      if (lower === 'false') return false;
+      return fail(name, `${name} must be "true" or "false", got "${raw}"`);
     },
   };
 }
@@ -266,6 +304,9 @@ export function loadEngineConfig(env: NodeJS.ProcessEnv): EngineConfig {
   const restartDropMb = r.number('FORECAST_RESTART_DROP_MB', 20, 'positive');
   const threshold = r.number('SIMILARITY_THRESHOLD', 0.85, 'unit');
   const durationCapSeconds = r.count('SIMILARITY_DURATION_CAP_SECONDS', 300);
+  const chaosRateLimitMax = r.strictCount('CHAOS_RATE_LIMIT_MAX', 5);
+  const chaosRateLimitWindowSeconds = r.strictCount('CHAOS_RATE_LIMIT_WINDOW_SECONDS', 60);
+  const trustProxy = r.flag('TRUST_PROXY', false);
 
   // Cross rules apply only when both sides parsed.
   if (minSamples !== undefined && windowPolls !== undefined && minSamples > windowPolls) {
@@ -302,13 +343,17 @@ export function loadEngineConfig(env: NodeJS.ProcessEnv): EngineConfig {
     stdError === undefined || stdRss === undefined || memoryLimitMb === undefined ||
     windowPolls === undefined || minSamples === undefined || minR2 === undefined ||
     minSlopeMbPerS === undefined || warnSeconds === undefined || restartDropMb === undefined ||
-    threshold === undefined || durationCapSeconds === undefined
+    threshold === undefined || durationCapSeconds === undefined ||
+    chaosRateLimitMax === undefined || chaosRateLimitWindowSeconds === undefined ||
+    trustProxy === undefined
   ) {
     throw new ConfigError('ENGINE_CONFIG', 'internal error: intelligence config incomplete');
   }
 
   return {
     ...base,
+    chaosRateLimit: { max: chaosRateLimitMax, windowSeconds: chaosRateLimitWindowSeconds },
+    trustProxy,
     memoryLimitMb,
     anomaly: {
       alpha,

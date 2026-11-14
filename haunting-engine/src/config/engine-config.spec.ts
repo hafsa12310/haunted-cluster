@@ -47,6 +47,8 @@ describe('loadEngineConfig', () => {
         chaosEvidenceWindowSeconds: 150,
         chaosProxyTimeoutMs: 3000,
         corsOrigin: 'http://localhost:3100',
+        chaosRateLimit: { max: 5, windowSeconds: 60 },
+        trustProxy: false,
         memoryLimitMb: 290,
         anomaly: {
           alpha: 0.1,
@@ -409,6 +411,78 @@ describe('loadEngineConfig: engine-intelligence variables (Requirements 11.1-11.
       expect(error.variables).toEqual(expect.arrayContaining(names));
       expect(error.variables).toHaveLength(3);
       for (const name of names) expect(error.message).toContain(name);
+    });
+  });
+});
+
+describe('loadEngineConfig: chaos rate limit, proxy trust and CORS (haunted-house Requirements 9.7, 9.8)', () => {
+  describe('defaults', () => {
+    it('defaults the limit to 5 requests per 60 seconds', () => {
+      expect(load().chaosRateLimit).toEqual({ max: 5, windowSeconds: 60 });
+    });
+
+    it('defaults TRUST_PROXY to false', () => {
+      expect(load().trustProxy).toBe(false);
+    });
+
+    it('defaults CORS_ORIGIN to http://localhost:3100', () => {
+      expect(load().corsOrigin).toBe('http://localhost:3100');
+    });
+
+    it('treats blank values as unset', () => {
+      const config = load({
+        CHAOS_RATE_LIMIT_MAX: '  ',
+        CHAOS_RATE_LIMIT_WINDOW_SECONDS: '',
+        TRUST_PROXY: ' ',
+      });
+      expect(config.chaosRateLimit).toEqual({ max: 5, windowSeconds: 60 });
+      expect(config.trustProxy).toBe(false);
+    });
+  });
+
+  describe('valid overrides', () => {
+    it('reads CHAOS_RATE_LIMIT_MAX and CHAOS_RATE_LIMIT_WINDOW_SECONDS', () => {
+      const config = load({ CHAOS_RATE_LIMIT_MAX: '12', CHAOS_RATE_LIMIT_WINDOW_SECONDS: '300' });
+      expect(config.chaosRateLimit).toEqual({ max: 12, windowSeconds: 300 });
+    });
+
+    it('reads CORS_ORIGIN', () => {
+      expect(load({ CORS_ORIGIN: 'https://haunted.example.com' }).corsOrigin).toBe(
+        'https://haunted.example.com',
+      );
+    });
+  });
+
+  describe.each(['CHAOS_RATE_LIMIT_MAX', 'CHAOS_RATE_LIMIT_WINDOW_SECONDS'])('%s rejections', (name) => {
+    it.each([
+      ['zero', '0'],
+      ['negative', '-1'],
+      ['decimal', '1.5'],
+      ['non-numeric', 'abc'],
+      ['exponent', '1e2'],
+      ['hex', '0x10'],
+      ['padded with whitespace', ' 5 '],
+    ])('rejects a %s value (%j) with a ConfigError naming the variable', (_label, value) => {
+      const error = configError(() => load({ [name]: value }));
+      expect(error.variable).toBe(name);
+      expect(error.variables).toEqual([name]);
+      expect(error.message).toContain(name);
+    });
+  });
+
+  describe('TRUST_PROXY', () => {
+    it.each([
+      ['true', true],
+      ['TRUE', true],
+      [' false ', false],
+    ])('accepts %j as %s', (value, expected) => {
+      expect(load({ TRUST_PROXY: value }).trustProxy).toBe(expected);
+    });
+
+    it.each(['maybe', '1'])('rejects %j with a ConfigError naming TRUST_PROXY', (value) => {
+      const error = configError(() => load({ TRUST_PROXY: value }));
+      expect(error.variable).toBe('TRUST_PROXY');
+      expect(error.message).toContain('TRUST_PROXY');
     });
   });
 });

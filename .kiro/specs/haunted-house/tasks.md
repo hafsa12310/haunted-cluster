@@ -21,45 +21,45 @@ Conventions for every task:
 
 ## Tasks
 
-- [ ] 1. Engine configuration for the chaos rate limit
-  - [ ] 1.1 Extend `haunting-engine/src/config/engine-config.ts`
+- [x] 1. Engine configuration for the chaos rate limit
+  - [x] 1.1 Extend `haunting-engine/src/config/engine-config.ts`
     - Add `ChaosRateLimitConfig { max; windowSeconds }`, `chaosRateLimit` and `trustProxy` to `EngineConfig`.
     - Read `CHAOS_RATE_LIMIT_MAX` (default 5) and `CHAOS_RATE_LIMIT_WINDOW_SECONDS` (default 60) with the strict pattern `/^[1-9]\d*$/`; anything else (`0`, `-1`, `1.5`, `abc`, `1e2`, `0x10`, whitespace) throws `ConfigError` naming the variable. Unset or blank uses the default.
     - Read `TRUST_PROXY`: `true` or `false`, case-insensitive and trimmed, unset means `false`; any other value throws `ConfigError('TRUST_PROXY', ...)`. Keep the existing collecting-reader behaviour (`variables` lists every offender).
     - Confirm `corsOrigin` already reads `CORS_ORIGIN` with default `http://localhost:3100`; add it if missing.
     - _Requirements: 9.7, 9.8, 14.8_
 
-  - [ ] 1.2 Write unit tests in `engine-config.spec.ts`
+  - [x] 1.2 Write unit tests in `engine-config.spec.ts`
     - Defaults (5, 60, `false`, CORS default), valid overrides, one rejection per invalid class for each of the two limit variables with the variable named, `TRUST_PROXY` accepted as `true`, `TRUE`, ` false `, rejected as `maybe` and `1`.
     - Existing config tests keep passing unchanged.
     - _Requirements: 9.7, 9.8_
 
-  - [ ] 1.3 Write property test for rate-limit configuration
+  - [x] 1.3 Write property test for rate-limit configuration
     - **Property 37: Rate-limit configuration rejects non-positive-integers**
     - File: `engine-config.rate-limit.prop.spec.ts`
     - **Validates: Requirements 9.7, 9.8**
 
-- [ ] 2. Sliding-window limiter
-  - [ ] 2.1 Create `haunting-engine/src/chaos-proxy/rate-limit/sliding-window.ts`
+- [x] 2. Sliding-window limiter
+  - [x] 2.1 Create `haunting-engine/src/chaos-proxy/rate-limit/sliding-window.ts`
     - Export `WindowDecision`, `decide(timestamps, nowMs, max, windowMs)` and `prune(timestamps, nowMs, windowMs)`. Pure functions: no I/O, no clock reads, inputs never mutated.
     - Counted requests are those with `nowMs - t < windowMs`. Under the limit returns `{ allowed: true, retryAfterSeconds: 0 }`. At the limit returns `retryAfterSeconds = clamp(ceil((oldest + windowMs - nowMs) / 1000), 1, windowSeconds)`.
     - _Requirements: 9.2, 9.3_
 
-  - [ ] 2.2 Write property test for Retry-After
+  - [x] 2.2 Write property test for Retry-After
     - **Property 34: Retry-After is a whole number inside the window**
     - File: `sliding-window.prop.spec.ts`
     - **Validates: Requirements 9.2, 9.3**
 
-  - [ ] 2.3 Create `chaos-rate-limit.service.ts`
+  - [x] 2.3 Create `chaos-rate-limit.service.ts`
     - `ChaosRateLimitService` with `reserve(key)` returning `{ ok: true; reservation }` or `{ ok: false; retryAfterSeconds }`, and `refund(reservation)` removing one occurrence of that timestamp. State is `Map<string, number[]>`; `reserve` prunes the key first, empty keys are deleted, and a sweep removes keys with nothing inside the window once the map passes 10 000 keys.
     - Inject config through `ENGINE_CONFIG` and time through an injectable `CLOCK` provider (create `CLOCK` beside the service if no equivalent exists).
     - _Requirements: 9.1, 9.5, 9.6, 9.12_
 
-  - [ ] 2.4 Write unit tests in `chaos-rate-limit.service.spec.ts`
+  - [x] 2.4 Write unit tests in `chaos-rate-limit.service.spec.ts`
     - Fake clock: N+1 requests from one key give a rejection; window expiry re-allows; two keys are independent; refund restores one slot; the sweep bounds memory; `reserve` on a limited key does not add a timestamp.
     - _Requirements: 9.1, 9.2, 9.5, 9.12_
 
-  - [ ] 2.5 Write property tests for the store
+  - [x] 2.5 Write property tests for the store
     - **Property 33: Exactly `min(N, max)` requests are accepted**, file `chaos-rate-limit.accept.prop.spec.ts`
     - **Property 35: Clients are limited independently**, file `chaos-rate-limit.clients.prop.spec.ts`
     - **Property 36: Invalid requests do not use up the allowance**, file `chaos-rate-limit.refund.prop.spec.ts`
